@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Calendar, Search, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
@@ -136,16 +135,16 @@ const Index = () => {
     switch (currentPage) {
       case 'calendar':
         return (
-          <div className="flex-1 p-6">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-4">
+          <div className="flex-1 p-4">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
                 <button
                   onClick={() => navigateDate('prev')}
-                  className="p-3 glossy-button text-gray-700 rounded-xl transition-all duration-200"
+                  className="p-2 glossy-button text-gray-700 rounded-lg transition-all duration-200"
                 >
-                  <ChevronLeft className="w-5 h-5" />
+                  <ChevronLeft className="w-4 h-4" />
                 </button>
-                <h2 className="text-2xl font-light text-gray-900">
+                <h2 className="text-lg font-medium text-gray-900">
                   {selectedDate.toLocaleDateString('en-US', {
                     month: 'long',
                     year: 'numeric',
@@ -154,17 +153,17 @@ const Index = () => {
                 </h2>
                 <button
                   onClick={() => navigateDate('next')}
-                  className="p-3 glossy-button text-gray-700 rounded-xl transition-all duration-200"
+                  className="p-2 glossy-button text-gray-700 rounded-lg transition-all duration-200"
                 >
-                  <ChevronRight className="w-5 h-5" />
+                  <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-1">
                 {(['daily', 'weekly', 'monthly'] as CalendarViewType[]).map((view) => (
                   <button
                     key={view}
                     onClick={() => setCurrentView(view)}
-                    className={`px-6 py-3 rounded-xl transition-all duration-200 capitalize ${
+                    className={`px-4 py-2 rounded-lg transition-all duration-200 capitalize text-sm ${
                       currentView === view
                         ? 'bg-gray-900 text-white shadow-lg'
                         : 'glossy-button text-gray-700'
@@ -213,10 +212,10 @@ const Index = () => {
       
       <div className="flex-1 flex flex-col">
         {/* Top Navigation */}
-        <div className="glass-effect border-b border-gray-200 px-6 py-4">
+        <div className="glass-effect border-b border-gray-200 px-4 py-3">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-light text-gray-900">Popsicles</h1>
-            <div className="flex items-center gap-4">
+            <h1 className="text-lg font-medium text-gray-900">Popsicles</h1>
+            <div className="flex items-center gap-3">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <input
@@ -224,13 +223,13 @@ const Index = () => {
                   placeholder="Search tasks..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-400 w-64 glass-effect"
+                  className="pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 w-56 glass-effect text-sm"
                 />
               </div>
               {currentPage === 'calendar' && (
                 <button
                   onClick={() => setShowTaskOverlay(true)}
-                  className="flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-xl hover:bg-gray-800 transition-all duration-200 shadow-lg"
+                  className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-all duration-200 shadow-lg text-sm"
                 >
                   <Plus className="w-4 h-4" />
                   Add Task
