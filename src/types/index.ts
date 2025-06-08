@@ -8,6 +8,7 @@ export interface Task {
   date: string;
   priority: 'low' | 'medium' | 'high';
   color: string;
+  completed: boolean;
 }
 
 export type CalendarViewType = 'daily' | 'weekly' | 'monthly';
@@ -20,6 +21,9 @@ export interface UserProfile {
   timezone: string;
   theme: 'light' | 'dark';
   notifications: boolean;
+  language: string;
+  dateFormat: '12h' | '24h';
+  weekStart: 'sunday' | 'monday';
 }
 
 export interface ChatMessage {
