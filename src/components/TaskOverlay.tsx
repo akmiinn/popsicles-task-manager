@@ -1,7 +1,14 @@
 
 import { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
+import { X, ChevronDown } from 'lucide-react';
 import { Task } from '../types';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './ui/select';
 
 interface TaskOverlayProps {
   isOpen: boolean;
@@ -19,19 +26,9 @@ const TaskOverlay = ({ isOpen, onClose, onSave, editingTask, selectedDate }: Tas
     endTime: '',
     date: selectedDate.toISOString().split('T')[0],
     priority: 'medium' as 'low' | 'medium' | 'high',
-    color: 'bg-blue-200',
+    color: 'bg-blue-100',
     completed: false
   });
-
-  // Suggested time periods
-  const suggestedTimes = [
-    { start: '09:00', end: '10:00', label: 'Morning (9-10 AM)' },
-    { start: '10:00', end: '11:00', label: 'Mid-Morning (10-11 AM)' },
-    { start: '12:00', end: '13:00', label: 'Lunch (12-1 PM)' },
-    { start: '14:00', end: '15:00', label: 'Afternoon (2-3 PM)' },
-    { start: '16:00', end: '17:00', label: 'Late Afternoon (4-5 PM)' },
-    { start: '19:00', end: '20:00', label: 'Evening (7-8 PM)' },
-  ];
 
   useEffect(() => {
     if (editingTask) {
@@ -46,7 +43,7 @@ const TaskOverlay = ({ isOpen, onClose, onSave, editingTask, selectedDate }: Tas
         completed: editingTask.completed
       });
     } else {
-      // Set default suggested time (next available hour)
+      // Set default time (next available hour)
       const now = new Date();
       const nextHour = new Date(now.getTime() + 60 * 60 * 1000);
       const defaultStart = `${nextHour.getHours().toString().padStart(2, '0')}:00`;
@@ -59,7 +56,7 @@ const TaskOverlay = ({ isOpen, onClose, onSave, editingTask, selectedDate }: Tas
         endTime: defaultEnd,
         date: selectedDate.toISOString().split('T')[0],
         priority: 'medium',
-        color: 'bg-blue-200',
+        color: 'bg-blue-100',
         completed: false
       });
     }
@@ -74,160 +71,149 @@ const TaskOverlay = ({ isOpen, onClose, onSave, editingTask, selectedDate }: Tas
     }
   };
 
-  const handleSuggestedTime = (start: string, end: string) => {
-    setFormData({ ...formData, startTime: start, endTime: end });
-  };
-
   const colorOptions = [
-    { value: 'bg-pink-200', label: 'Pink' },
-    { value: 'bg-blue-200', label: 'Blue' },
-    { value: 'bg-green-200', label: 'Green' },
-    { value: 'bg-yellow-200', label: 'Yellow' },
-    { value: 'bg-purple-200', label: 'Purple' },
-    { value: 'bg-orange-200', label: 'Orange' },
+    { value: 'bg-pink-100', label: 'Pink', preview: '#fce7f3' },
+    { value: 'bg-blue-100', label: 'Blue', preview: '#dbeafe' },
+    { value: 'bg-green-100', label: 'Green', preview: '#dcfce7' },
+    { value: 'bg-yellow-100', label: 'Yellow', preview: '#fef3c7' },
+    { value: 'bg-purple-100', label: 'Purple', preview: '#f3e8ff' },
+    { value: 'bg-orange-100', label: 'Orange', preview: '#fed7aa' },
+    { value: 'bg-indigo-100', label: 'Indigo', preview: '#e0e7ff' },
+    { value: 'bg-teal-100', label: 'Teal', preview: '#ccfbf1' },
   ];
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-white/95 backdrop-blur-lg rounded-xl p-6 w-80 max-h-[85vh] overflow-y-auto shadow-2xl border border-gray-200/50">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-medium text-gray-800">
-            {editingTask ? 'Edit Task' : 'Add New Task'}
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50">
+      <div className="bg-white/95 backdrop-blur-xl rounded-2xl p-6 w-96 max-h-[90vh] overflow-y-auto shadow-2xl border border-gray-200/30">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-xl font-light text-gray-900">
+            {editingTask ? 'Edit Task' : 'New Task'}
           </h3>
           <button
             onClick={onClose}
-            className="p-1 hover:bg-gray-100/50 rounded-lg transition-all duration-200"
+            className="p-2 hover:bg-gray-100/50 rounded-xl transition-all duration-200"
           >
-            <X className="w-5 h-5" />
+            <X className="w-5 h-5 text-gray-500" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Task Title
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Title
             </label>
             <input
               type="text"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-200/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-300 shadow-sm bg-white/80 backdrop-blur-sm text-sm"
+              className="w-full px-4 py-3 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-300 shadow-sm bg-white/80 backdrop-blur-sm text-sm"
+              placeholder="Task title"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Description
             </label>
             <textarea
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-200/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-300 h-16 resize-none shadow-sm bg-white/80 backdrop-blur-sm text-sm"
+              className="w-full px-4 py-3 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-300 h-20 resize-none shadow-sm bg-white/80 backdrop-blur-sm text-sm"
+              placeholder="Optional description"
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Suggested Time Slots
-            </label>
-            <div className="grid grid-cols-2 gap-2 mb-3">
-              {suggestedTimes.map((time, index) => (
-                <button
-                  key={index}
-                  type="button"
-                  onClick={() => handleSuggestedTime(time.start, time.end)}
-                  className={`p-2 text-xs rounded-lg border transition-all duration-200 ${
-                    formData.startTime === time.start && formData.endTime === time.end
-                      ? 'bg-gray-900 text-white border-gray-900'
-                      : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
-                  }`}
-                >
-                  {time.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Start Time
               </label>
               <input
                 type="time"
                 value={formData.startTime}
                 onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-200/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-300 shadow-sm bg-white/80 backdrop-blur-sm text-sm"
+                className="w-full px-4 py-3 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-300 shadow-sm bg-white/80 backdrop-blur-sm text-sm"
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 End Time
               </label>
               <input
                 type="time"
                 value={formData.endTime}
                 onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-200/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-300 shadow-sm bg-white/80 backdrop-blur-sm text-sm"
+                className="w-full px-4 py-3 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-300 shadow-sm bg-white/80 backdrop-blur-sm text-sm"
                 required
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Date
             </label>
             <input
               type="date"
               value={formData.date}
               onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-200/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-300 shadow-sm bg-white/80 backdrop-blur-sm text-sm"
+              className="w-full px-4 py-3 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-300 shadow-sm bg-white/80 backdrop-blur-sm text-sm"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Priority
             </label>
-            <select
-              value={formData.priority}
-              onChange={(e) => setFormData({ ...formData, priority: e.target.value as 'low' | 'medium' | 'high' })}
-              className="w-full px-3 py-2 border border-gray-200/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-300 shadow-sm bg-white/80 backdrop-blur-sm text-sm"
-            >
-              <option value="high">High</option>
-              <option value="medium">Medium</option>
-              <option value="low">Low</option>
-            </select>
+            <Select value={formData.priority} onValueChange={(value) => setFormData({ ...formData, priority: value as 'low' | 'medium' | 'high' })}>
+              <SelectTrigger className="w-full px-4 py-3 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-300 shadow-sm bg-white/80 backdrop-blur-sm text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-white/95 backdrop-blur-xl border border-gray-200/50 rounded-xl shadow-2xl">
+                <SelectItem value="high" className="text-sm hover:bg-gray-50/50 rounded-lg">High Priority</SelectItem>
+                <SelectItem value="medium" className="text-sm hover:bg-gray-50/50 rounded-lg">Medium Priority</SelectItem>
+                <SelectItem value="low" className="text-sm hover:bg-gray-50/50 rounded-lg">Low Priority</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Color
             </label>
-            <div className="grid grid-cols-3 gap-2">
-              {colorOptions.map((color) => (
-                <button
-                  key={color.value}
-                  type="button"
-                  onClick={() => setFormData({ ...formData, color: color.value })}
-                  className={`p-3 rounded-lg border-2 transition-all duration-200 shadow-sm hover:shadow-md ${color.value} ${
-                    formData.color === color.value ? 'border-gray-400 ring-2 ring-gray-300' : 'border-gray-200/50'
-                  }`}
-                >
-                  <span className="text-xs font-medium text-gray-700">{color.label}</span>
-                </button>
-              ))}
-            </div>
+            <Select value={formData.color} onValueChange={(value) => setFormData({ ...formData, color: value })}>
+              <SelectTrigger className="w-full px-4 py-3 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-300 shadow-sm bg-white/80 backdrop-blur-sm text-sm">
+                <div className="flex items-center gap-3">
+                  <div 
+                    className={`w-4 h-4 rounded-full ${formData.color}`}
+                    style={{ backgroundColor: colorOptions.find(c => c.value === formData.color)?.preview }}
+                  />
+                  <SelectValue />
+                </div>
+              </SelectTrigger>
+              <SelectContent className="bg-white/95 backdrop-blur-xl border border-gray-200/50 rounded-xl shadow-2xl">
+                {colorOptions.map((color) => (
+                  <SelectItem key={color.value} value={color.value} className="text-sm hover:bg-gray-50/50 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div 
+                        className="w-4 h-4 rounded-full" 
+                        style={{ backgroundColor: color.preview }}
+                      />
+                      <span>{color.label}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {editingTask && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <input
                 type="checkbox"
                 id="completed"
@@ -241,19 +227,19 @@ const TaskOverlay = ({ isOpen, onClose, onSave, editingTask, selectedDate }: Tas
             </div>
           )}
 
-          <div className="flex gap-3 pt-3">
+          <div className="flex gap-3 pt-4">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2 border border-gray-200/50 text-gray-600 rounded-lg hover:bg-gray-50/50 transition-all duration-200 shadow-sm text-sm"
+              className="flex-1 px-6 py-3 border border-gray-300 text-gray-600 rounded-xl hover:bg-gray-50/50 transition-all duration-200 shadow-sm text-sm font-medium"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex-1 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-all duration-200 shadow-sm hover:shadow-md text-sm"
+              className="flex-1 px-6 py-3 bg-gray-900 text-white rounded-xl hover:bg-gray-800 transition-all duration-200 shadow-lg hover:shadow-xl text-sm font-medium"
             >
-              {editingTask ? 'Update' : 'Add Task'}
+              {editingTask ? 'Update' : 'Create'}
             </button>
           </div>
         </form>
