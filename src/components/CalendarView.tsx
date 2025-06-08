@@ -29,9 +29,9 @@ const CalendarView = ({ view, selectedDate, tasks, onTaskEdit, onDateChange, onT
     const hours = Array.from({ length: 24 }, (_, i) => i);
 
     return (
-      <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl border border-gray-200/50 overflow-hidden">
-        <div className="p-6 border-b border-gray-100/50 bg-gradient-to-r from-gray-50 to-gray-100">
-          <h3 className="font-medium text-gray-800">
+      <div className="glass-effect rounded-2xl shadow-xl border border-gray-300 overflow-hidden">
+        <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100">
+          <h3 className="font-medium text-gray-900">
             {selectedDate.toLocaleDateString('en-US', { 
               weekday: 'long', 
               month: 'long', 
@@ -49,8 +49,8 @@ const CalendarView = ({ view, selectedDate, tasks, onTaskEdit, onDateChange, onT
               );
 
               return (
-                <div key={hour} className="flex border-b border-gray-50/50 py-3">
-                  <div className="w-20 text-sm text-gray-500 flex-shrink-0 font-medium">
+                <div key={hour} className="flex border-b border-gray-100 py-3">
+                  <div className="w-20 text-sm text-gray-600 flex-shrink-0 font-medium">
                     {hour === 0 ? '12 AM' : 
                      hour < 12 ? `${hour} AM` : 
                      hour === 12 ? '12 PM' : 
@@ -60,7 +60,7 @@ const CalendarView = ({ view, selectedDate, tasks, onTaskEdit, onDateChange, onT
                     {hourTasks.map(task => (
                       <div
                         key={task.id}
-                        className={`${task.color} p-4 rounded-xl mb-2 border border-gray-200/30 shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer group backdrop-blur-sm ${
+                        className={`${task.color} p-4 rounded-xl mb-2 border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer group glass-effect ${
                           task.completed ? 'opacity-60' : ''
                         }`}
                         onClick={() => onTaskEdit(task)}
@@ -81,7 +81,7 @@ const CalendarView = ({ view, selectedDate, tasks, onTaskEdit, onDateChange, onT
                               {task.completed && <Check className="w-3 h-3" />}
                             </button>
                             <div>
-                              <h4 className={`font-medium text-sm ${task.completed ? 'line-through text-gray-500' : 'text-gray-800'}`}>
+                              <h4 className={`font-medium text-sm ${task.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>
                                 {task.title}
                               </h4>
                               <p className="text-xs text-gray-600">
@@ -119,15 +119,15 @@ const CalendarView = ({ view, selectedDate, tasks, onTaskEdit, onDateChange, onT
     });
 
     return (
-      <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl border border-gray-200/50 overflow-hidden">
-        <div className="grid grid-cols-7 border-b border-gray-100/50">
+      <div className="glass-effect rounded-2xl shadow-xl border border-gray-300 overflow-hidden">
+        <div className="grid grid-cols-7 border-b border-gray-200">
           {weekDays.map((day, index) => (
-            <div key={index} className="p-4 text-center border-r border-gray-100/50 last:border-r-0 bg-gradient-to-b from-gray-50 to-white">
-              <div className="text-sm text-gray-500">
+            <div key={index} className="p-4 text-center border-r border-gray-200 last:border-r-0 bg-gradient-to-b from-gray-50 to-white">
+              <div className="text-sm text-gray-600">
                 {day.toLocaleDateString('en-US', { weekday: 'short' })}
               </div>
               <div className={`text-lg font-medium mt-1 ${
-                day.toDateString() === today.toDateString() ? 'text-purple-600' : 'text-gray-800'
+                day.toDateString() === today.toDateString() ? 'text-gray-900' : 'text-gray-800'
               }`}>
                 {day.getDate()}
               </div>
@@ -138,12 +138,12 @@ const CalendarView = ({ view, selectedDate, tasks, onTaskEdit, onDateChange, onT
           {weekDays.map((day, index) => {
             const dayTasks = getTasksForDate(day.toISOString().split('T')[0]);
             return (
-              <div key={index} className="p-3 border-r border-gray-100/50 last:border-r-0">
+              <div key={index} className="p-3 border-r border-gray-200 last:border-r-0">
                 <div className="space-y-2">
                   {dayTasks.map(task => (
                     <div
                       key={task.id}
-                      className={`${task.color} p-2 rounded-lg text-xs cursor-pointer hover:shadow-lg transition-all duration-200 border border-gray-200/30 backdrop-blur-sm ${
+                      className={`${task.color} p-2 rounded-lg text-xs cursor-pointer hover:shadow-lg transition-all duration-200 border border-gray-200 glass-effect ${
                         task.completed ? 'opacity-60' : ''
                       }`}
                       onClick={() => onTaskEdit(task)}
@@ -162,11 +162,11 @@ const CalendarView = ({ view, selectedDate, tasks, onTaskEdit, onDateChange, onT
                         >
                           {task.completed && <Check className="w-2 h-2" />}
                         </button>
-                        <div className="flex-1">
-                          <div className={`font-medium truncate ${task.completed ? 'line-through text-gray-500' : 'text-gray-800'}`}>
+                        <div className="flex-1 min-w-0">
+                          <div className={`font-medium truncate ${task.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>
                             {task.title}
                           </div>
-                          <div className="text-gray-600">{task.startTime}</div>
+                          <div className="text-gray-700 truncate">{task.startTime}</div>
                         </div>
                       </div>
                     </div>
@@ -197,10 +197,10 @@ const CalendarView = ({ view, selectedDate, tasks, onTaskEdit, onDateChange, onT
     }
 
     return (
-      <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl border border-gray-200/50 overflow-hidden">
-        <div className="grid grid-cols-7 border-b border-gray-100/50">
+      <div className="glass-effect rounded-2xl shadow-xl border border-gray-300 overflow-hidden">
+        <div className="grid grid-cols-7 border-b border-gray-200">
           {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-            <div key={day} className="p-4 text-center text-sm font-medium text-gray-500 border-r border-gray-100/50 last:border-r-0 bg-gradient-to-b from-gray-50 to-white">
+            <div key={day} className="p-4 text-center text-sm font-medium text-gray-700 border-r border-gray-200 last:border-r-0 bg-gradient-to-b from-gray-50 to-white">
               {day}
             </div>
           ))}
@@ -214,14 +214,14 @@ const CalendarView = ({ view, selectedDate, tasks, onTaskEdit, onDateChange, onT
             return (
               <div
                 key={index}
-                className={`min-h-28 p-3 border-r border-b border-gray-100/50 last:border-r-0 cursor-pointer hover:bg-gray-50/50 transition-colors ${
-                  !isCurrentMonth ? 'bg-gray-25 text-gray-400' : ''
+                className={`min-h-28 p-3 border-r border-b border-gray-200 last:border-r-0 cursor-pointer hover:bg-gray-50 transition-colors ${
+                  !isCurrentMonth ? 'bg-gray-50 text-gray-400' : ''
                 }`}
                 onClick={() => onDateChange(day)}
               >
                 <div className={`text-sm mb-2 ${
-                  isToday ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white w-6 h-6 rounded-full flex items-center justify-center font-medium' : 
-                  isCurrentMonth ? 'text-gray-800' : 'text-gray-400'
+                  isToday ? 'bg-gray-900 text-white w-6 h-6 rounded-full flex items-center justify-center font-medium' : 
+                  isCurrentMonth ? 'text-gray-900' : 'text-gray-400'
                 }`}>
                   {day.getDate()}
                 </div>
@@ -229,7 +229,7 @@ const CalendarView = ({ view, selectedDate, tasks, onTaskEdit, onDateChange, onT
                   {dayTasks.slice(0, 2).map(task => (
                     <div
                       key={task.id}
-                      className={`${task.color} p-1 rounded text-xs truncate border border-gray-200/30 hover:shadow-sm transition-all duration-200 backdrop-blur-sm ${
+                      className={`${task.color} p-1 rounded text-xs truncate border border-gray-200 hover:shadow-sm transition-all duration-200 glass-effect ${
                         task.completed ? 'opacity-60' : ''
                       }`}
                       onClick={(e) => {
@@ -239,14 +239,14 @@ const CalendarView = ({ view, selectedDate, tasks, onTaskEdit, onDateChange, onT
                     >
                       <div className="flex items-center gap-1">
                         {task.completed && <Check className="w-2 h-2 text-green-600" />}
-                        <span className={`font-medium ${task.completed ? 'line-through text-gray-500' : 'text-gray-800'}`}>
+                        <span className={`font-medium truncate ${task.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>
                           {task.title}
                         </span>
                       </div>
                     </div>
                   ))}
                   {dayTasks.length > 2 && (
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-gray-600">
                       +{dayTasks.length - 2} more
                     </div>
                   )}

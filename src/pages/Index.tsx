@@ -141,11 +141,11 @@ const Index = () => {
               <div className="flex items-center gap-4">
                 <button
                   onClick={() => navigateDate('prev')}
-                  className="p-3 hover:bg-gray-100/50 rounded-xl transition-all duration-200 hover:shadow-lg"
+                  className="p-3 glossy-button text-gray-700 rounded-xl transition-all duration-200"
                 >
                   <ChevronLeft className="w-5 h-5" />
                 </button>
-                <h2 className="text-2xl font-light text-gray-800">
+                <h2 className="text-2xl font-light text-gray-900">
                   {selectedDate.toLocaleDateString('en-US', {
                     month: 'long',
                     year: 'numeric',
@@ -154,7 +154,7 @@ const Index = () => {
                 </h2>
                 <button
                   onClick={() => navigateDate('next')}
-                  className="p-3 hover:bg-gray-100/50 rounded-xl transition-all duration-200 hover:shadow-lg"
+                  className="p-3 glossy-button text-gray-700 rounded-xl transition-all duration-200"
                 >
                   <ChevronRight className="w-5 h-5" />
                 </button>
@@ -164,10 +164,10 @@ const Index = () => {
                   <button
                     key={view}
                     onClick={() => setCurrentView(view)}
-                    className={`px-6 py-3 rounded-xl transition-all duration-200 capitalize shadow-lg hover:shadow-xl ${
+                    className={`px-6 py-3 rounded-xl transition-all duration-200 capitalize ${
                       currentView === view
-                        ? 'bg-gradient-to-r from-gray-800 to-gray-900 text-white shadow-xl'
-                        : 'bg-white text-gray-600 hover:bg-gray-50'
+                        ? 'bg-gray-900 text-white shadow-lg'
+                        : 'glossy-button text-gray-700'
                     }`}
                   >
                     {view}
@@ -204,7 +204,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex">
+    <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 flex">
       <Sidebar
         currentPage={currentPage}
         onPageChange={setCurrentPage}
@@ -213,9 +213,9 @@ const Index = () => {
       
       <div className="flex-1 flex flex-col">
         {/* Top Navigation */}
-        <div className="bg-white/80 backdrop-blur-lg border-b border-gray-200/50 px-6 py-4 shadow-lg">
+        <div className="glass-effect border-b border-gray-200 px-6 py-4">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-light text-gray-800 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">Popsicles</h1>
+            <h1 className="text-2xl font-light text-gray-900">Popsicles</h1>
             <div className="flex items-center gap-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -224,13 +224,13 @@ const Index = () => {
                   placeholder="Search tasks..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 pr-4 py-3 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-300 w-64 bg-white/80 backdrop-blur-sm shadow-lg"
+                  className="pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-400 w-64 glass-effect"
                 />
               </div>
               {currentPage === 'calendar' && (
                 <button
                   onClick={() => setShowTaskOverlay(true)}
-                  className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+                  className="flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-xl hover:bg-gray-800 transition-all duration-200 shadow-lg"
                 >
                   <Plus className="w-4 h-4" />
                   Add Task

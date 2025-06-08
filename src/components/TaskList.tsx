@@ -1,4 +1,3 @@
-
 import { Edit2, Trash2, Clock, Check } from 'lucide-react';
 import { Task } from '../types';
 
@@ -44,12 +43,12 @@ const TaskList = ({ tasks, onTaskEdit, onTaskDelete, onTaskToggle }: TaskListPro
 
   const TaskSection = ({ title, tasks: sectionTasks }: { title: string; tasks: Task[] }) => (
     <div className="mb-8">
-      <h3 className="text-lg font-medium text-gray-800 mb-4">{title}</h3>
+      <h3 className="text-lg font-medium text-gray-900 mb-4">{title}</h3>
       <div className="space-y-3">
         {sectionTasks.map(task => (
           <div
             key={task.id}
-            className={`${task.color} p-4 rounded-xl border border-gray-200/50 shadow-lg hover:shadow-xl transition-all duration-200 backdrop-blur-sm ${
+            className={`${task.color} p-4 rounded-xl border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-200 glass-effect ${
               task.completed ? 'opacity-60' : ''
             }`}
           >
@@ -106,7 +105,7 @@ const TaskList = ({ tasks, onTaskEdit, onTaskDelete, onTaskToggle }: TaskListPro
           </div>
         ))}
         {sectionTasks.length === 0 && (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-gray-600">
             <p>No tasks found</p>
           </div>
         )}
@@ -118,26 +117,26 @@ const TaskList = ({ tasks, onTaskEdit, onTaskDelete, onTaskToggle }: TaskListPro
     <div className="flex-1 p-6">
       <div className="max-w-4xl mx-auto">
         {/* Task Summary */}
-        <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl border border-gray-200/50 p-6 mb-8">
+        <div className="glass-effect rounded-2xl shadow-xl border border-gray-300 p-6 mb-8">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-2xl font-light text-gray-800">Tasks</h2>
-              <p className="text-gray-600">Manage and track your tasks</p>
+              <h2 className="text-2xl font-light text-gray-900">Tasks</h2>
+              <p className="text-gray-700">Manage and track your tasks</p>
             </div>
           </div>
           
           <div className="grid grid-cols-3 gap-6">
-            <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200">
-              <div className="text-3xl font-bold text-blue-600">{tasks.length}</div>
-              <div className="text-sm text-blue-700">Total</div>
+            <div className="text-center p-4 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl border border-gray-300">
+              <div className="text-3xl font-bold text-gray-900">{tasks.length}</div>
+              <div className="text-sm text-gray-700">Total</div>
             </div>
-            <div className="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl border border-green-200">
-              <div className="text-3xl font-bold text-green-600">{completedTasks.length}</div>
-              <div className="text-sm text-green-700">Completed</div>
+            <div className="text-center p-4 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl border border-gray-300">
+              <div className="text-3xl font-bold text-gray-900">{completedTasks.length}</div>
+              <div className="text-sm text-gray-700">Completed</div>
             </div>
-            <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border border-purple-200">
-              <div className="text-3xl font-bold text-purple-600">{upcomingTasks.length}</div>
-              <div className="text-sm text-purple-700">Upcoming</div>
+            <div className="text-center p-4 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl border border-gray-300">
+              <div className="text-3xl font-bold text-gray-900">{upcomingTasks.length}</div>
+              <div className="text-sm text-gray-700">Upcoming</div>
             </div>
           </div>
         </div>
