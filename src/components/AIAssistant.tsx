@@ -32,9 +32,9 @@ const AIAssistant = ({ onAddTask, tasks }: AIAssistantProps) => {
     
     // Check for specific dates (MM/DD/YYYY, DD/MM/YYYY, YYYY-MM-DD)
     const specificDatePatterns = [
-      /(\d{1,2})\/(\d{1,2})\/(\d{4})/,  // MM/DD/YYYY or DD/MM/YYYY
-      /(\d{4})-(\d{1,2})-(\d{1,2})/,   // YYYY-MM-DD
-      /(\d{1,2})-(\d{1,2})-(\d{4})/,   // DD-MM-YYYY or MM-DD-YYYY
+      /(\d{1,2})\/(\d{1,2})\/(\d{4})/,
+      /(\d{4})-(\d{1,2})-(\d{1,2})/,
+      /(\d{1,2})-(\d{1,2})-(\d{4})/,
     ];
     
     for (const pattern of specificDatePatterns) {
@@ -42,12 +42,10 @@ const AIAssistant = ({ onAddTask, tasks }: AIAssistantProps) => {
       if (match) {
         let year, month, day;
         if (pattern.source.includes('(\\d{4})')) {
-          // YYYY-MM-DD format
           year = parseInt(match[1]);
           month = parseInt(match[2]) - 1;
           day = parseInt(match[3]);
         } else {
-          // Assume MM/DD/YYYY format for ambiguous cases
           month = parseInt(match[1]) - 1;
           day = parseInt(match[2]);
           year = match[3] ? parseInt(match[3]) : today.getFullYear();
@@ -57,7 +55,7 @@ const AIAssistant = ({ onAddTask, tasks }: AIAssistantProps) => {
       }
     }
     
-    // Check for day names
+    // Check for day names with better logic
     const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
     const currentDay = today.getDay();
     
@@ -66,9 +64,18 @@ const AIAssistant = ({ onAddTask, tasks }: AIAssistantProps) => {
         const targetDay = new Date(today);
         let daysUntilTarget = (i - currentDay + 7) % 7;
         
-        // If it's the same day and we say "this monday" or just "monday", assume next week
-        if (daysUntilTarget === 0 && !lowerMessage.includes('today')) {
-          daysUntilTarget = 7;
+        // If it's the same day, check for "coming", "this", or "next"
+        if (daysUntilTarget === 0) {
+          if (lowerMessage.includes('coming') || lowerMessage.includes('this') || lowerMessage.includes('next')) {
+            daysUntilTarget = 7; // Next week
+          } else {
+            daysUntilTarget = 0; // Today
+          }
+        }
+        
+        // Handle "coming [day]" - should be next occurrence
+        if (lowerMessage.includes('coming')) {
+          if (daysUntilTarget === 0) daysUntilTarget = 7;
         }
         
         // Handle "next [day]"
@@ -98,7 +105,6 @@ const AIAssistant = ({ onAddTask, tasks }: AIAssistantProps) => {
       return nextWeek.toISOString().split('T')[0];
     }
     
-    // Check for relative days like "in 3 days", "in a week"
     const relativeMatch = lowerMessage.match(/in (\d+) days?/);
     if (relativeMatch) {
       const daysToAdd = parseInt(relativeMatch[1]);
@@ -223,6 +229,19 @@ const AIAssistant = ({ onAddTask, tasks }: AIAssistantProps) => {
 
       const date = parseDate(message);
 
+      // Cycle through pastel colors
+      const pastelColors = [
+        'bg-pink-200',
+        'bg-blue-200', 
+        'bg-green-200',
+        'bg-yellow-200',
+        'bg-purple-200',
+        'bg-indigo-200',
+        'bg-red-200',
+        'bg-orange-200'
+      ];
+      const randomColor = pastelColors[Math.floor(Math.random() * pastelColors.length)];
+
       return {
         title,
         description: `Created via AI assistant`,
@@ -230,7 +249,7 @@ const AIAssistant = ({ onAddTask, tasks }: AIAssistantProps) => {
         endTime,
         date,
         priority: 'medium',
-        color: 'bg-purple-200',
+        color: randomColor,
         completed: false
       };
     }
@@ -411,9 +430,9 @@ What would you like me to help you with?`;
   };
 
   return (
-    <div className="flex-1 flex flex-col bg-gradient-to-br from-gray-50 to-gray-100">
-      <div className="bg-white/80 backdrop-blur-lg border-b border-gray-200/50 p-4 shadow-lg">
-        <h2 className="text-lg font-medium text-gray-800">AI Assistant</h2>
+    <div className="flex-1 flex flex-col">
+      <div className="glass-3d border-b border-gray-800/20 p-4 shadow-lg">
+        <h2 className="text-lg font-medium text-gray-900">AI Assistant</h2>
         <p className="text-xs text-gray-600 mt-1">Ask me to create tasks, manage your schedule, or resolve conflicts</p>
       </div>
 
@@ -424,25 +443,25 @@ What would you like me to help you with?`;
             className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
           >
             <div className={`flex max-w-2xl ${message.isUser ? 'flex-row-reverse' : 'flex-row'} gap-2`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 shadow-md ${
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 glass-3d ${
                 message.isUser 
-                  ? 'bg-gradient-to-r from-gray-600 to-gray-700' 
-                  : 'bg-gradient-to-r from-gray-500 to-gray-600'
+                  ? 'bg-gray-900 text-white' 
+                  : 'bg-gray-100 text-gray-900'
               }`}>
                 {message.isUser ? (
-                  <User className="w-4 h-4 text-white" />
+                  <User className="w-4 h-4" />
                 ) : (
-                  <Bot className="w-4 h-4 text-white" />
+                  <Bot className="w-4 h-4" />
                 )}
               </div>
-              <div className={`rounded-xl p-3 shadow-md backdrop-blur-sm max-w-md ${
+              <div className={`rounded-xl p-3 glass-3d max-w-md ${
                 message.isUser 
-                  ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white' 
-                  : 'bg-white/80 text-gray-800 border border-gray-200/50'
+                  ? 'bg-gray-900 text-white' 
+                  : 'bg-white text-gray-900'
               }`}>
                 <div className="whitespace-pre-wrap text-sm leading-relaxed">{message.content}</div>
                 <div className={`flex items-center gap-1 mt-1 text-xs ${
-                  message.isUser ? 'text-gray-200' : 'text-gray-500'
+                  message.isUser ? 'text-gray-300' : 'text-gray-500'
                 }`}>
                   <Clock className="w-3 h-3" />
                   <span>{message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
@@ -455,10 +474,10 @@ What would you like me to help you with?`;
         {isLoading && (
           <div className="flex justify-start">
             <div className="flex gap-2 max-w-2xl">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-gray-500 to-gray-600 flex items-center justify-center flex-shrink-0 shadow-md">
-                <Bot className="w-4 h-4 text-white" />
+              <div className="w-8 h-8 rounded-full bg-gray-100 text-gray-900 flex items-center justify-center flex-shrink-0 glass-3d">
+                <Bot className="w-4 h-4" />
               </div>
-              <div className="bg-white/80 backdrop-blur-sm rounded-xl p-3 border border-gray-200/50 shadow-md">
+              <div className="bg-white glass-3d rounded-xl p-3">
                 <div className="flex space-x-1">
                   <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
                   <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
@@ -471,21 +490,21 @@ What would you like me to help you with?`;
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="bg-white/80 backdrop-blur-lg border-t border-gray-200/50 p-4 shadow-lg">
+      <div className="glass-3d border-t border-gray-800/20 p-4 shadow-lg">
         <div className="flex gap-2">
           <input
             type="text"
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder={conflictingSuggestion ? "Please respond with 1, 2, or 3..." : "Type your message... (e.g., 'Create a meeting tomorrow at 7pm')"}
-            className="flex-1 px-4 py-3 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-300 shadow-md bg-white/80 backdrop-blur-sm text-sm"
+            placeholder={conflictingSuggestion ? "Please respond with 1, 2, or 3..." : "Type your message... (e.g., 'Create a meeting coming Wednesday at 7pm')"}
+            className="flex-1 px-4 py-3 border border-gray-800/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-400 glass-3d text-sm"
             disabled={isLoading}
           />
           <button
             onClick={handleSendMessage}
             disabled={isLoading || !inputMessage.trim()}
-            className="px-4 py-3 bg-gray-900 text-white rounded-xl hover:bg-gray-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
+            className="px-4 py-3 bg-gray-900 text-white rounded-xl hover:bg-gray-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed glass-3d"
           >
             <Send className="w-4 h-4" />
           </button>
