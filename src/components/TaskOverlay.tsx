@@ -32,7 +32,6 @@ const TaskOverlay = ({ isOpen, onClose, onSave, editingTask, selectedDate }: Tas
 
   useEffect(() => {
     if (editingTask) {
-      // Show all prior info when editing
       setFormData({
         title: editingTask.title,
         description: editingTask.description,
@@ -44,7 +43,6 @@ const TaskOverlay = ({ isOpen, onClose, onSave, editingTask, selectedDate }: Tas
         completed: editingTask.completed
       });
     } else {
-      // Set default time (next available hour) when creating new task
       const now = new Date();
       const nextHour = new Date(now.getTime() + 60 * 60 * 1000);
       const defaultStart = `${nextHour.getHours().toString().padStart(2, '0')}:00`;
@@ -86,7 +84,7 @@ const TaskOverlay = ({ isOpen, onClose, onSave, editingTask, selectedDate }: Tas
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
+    <div className="fixed inset-0 bg-black/30 backdrop-blur-[2px] flex items-center justify-center z-50 animate-fade-in">
       <div className="glass-3d rounded-2xl p-6 w-96 max-h-[90vh] overflow-y-auto shadow-2xl border border-white/20 animate-scale-in">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-medium text-gray-900">
@@ -172,13 +170,13 @@ const TaskOverlay = ({ isOpen, onClose, onSave, editingTask, selectedDate }: Tas
               Priority
             </label>
             <Select value={formData.priority} onValueChange={(value) => setFormData({ ...formData, priority: value as 'low' | 'medium' | 'high' })}>
-              <SelectTrigger className="w-full px-4 py-3 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-300 shadow-sm glass-3d text-sm transition-all duration-300 hover:scale-[1.02]">
+              <SelectTrigger className="w-full glass-3d border border-gray-200/50 rounded-xl px-4 py-3 text-sm transition-all duration-300 hover:scale-[1.02]">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="high">High Priority</SelectItem>
-                <SelectItem value="medium">Medium Priority</SelectItem>
-                <SelectItem value="low">Low Priority</SelectItem>
+              <SelectContent className="glass-3d border border-gray-200/50 rounded-xl shadow-xl">
+                <SelectItem value="high" className="text-sm">High Priority</SelectItem>
+                <SelectItem value="medium" className="text-sm">Medium Priority</SelectItem>
+                <SelectItem value="low" className="text-sm">Low Priority</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -188,15 +186,15 @@ const TaskOverlay = ({ isOpen, onClose, onSave, editingTask, selectedDate }: Tas
               Color
             </label>
             <Select value={formData.color} onValueChange={(value) => setFormData({ ...formData, color: value })}>
-              <SelectTrigger className="w-full px-4 py-3 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-300 shadow-sm glass-3d text-sm transition-all duration-300 hover:scale-[1.02]">
+              <SelectTrigger className="w-full glass-3d border border-gray-200/50 rounded-xl px-4 py-3 text-sm transition-all duration-300 hover:scale-[1.02]">
                 <div className="flex items-center gap-3">
                   <div className={`w-4 h-4 rounded-full ${formData.color}`} />
                   <SelectValue />
                 </div>
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="glass-3d border border-gray-200/50 rounded-xl shadow-xl">
                 {colorOptions.map((color) => (
-                  <SelectItem key={color.value} value={color.value}>
+                  <SelectItem key={color.value} value={color.value} className="text-sm">
                     <div className="flex items-center gap-3">
                       <div className={`w-4 h-4 rounded-full ${color.preview}`} />
                       <span>{color.label}</span>

@@ -1,4 +1,4 @@
-import { Task, CalendarViewType } from '../types';
+import { Task, CalendarViewType, UserProfile } from '../types';
 import { Edit2, Check } from 'lucide-react';
 
 interface CalendarViewProps {
@@ -9,11 +9,27 @@ interface CalendarViewProps {
   onDateChange: (date: Date) => void;
   onTaskToggle: (taskId: string) => void;
   onViewChange?: (view: CalendarViewType) => void;
+  userProfile?: UserProfile;
 }
 
-const CalendarView = ({ view, selectedDate, tasks, onTaskEdit, onDateChange, onTaskToggle, onViewChange }: CalendarViewProps) => {
+const CalendarView = ({ view, selectedDate, tasks, onTaskEdit, onDateChange, onTaskToggle, onViewChange, userProfile }: CalendarViewProps) => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
+
+  const formatTime = (time: string, format: '12h' | '24h' = '12h') => {
+    if (!time) return time;
+    
+    const [hours, minutes] = time.split(':');
+    const hour = parseInt(hours);
+    
+    if (format === '12h') {
+      const period = hour >= 12 ? 'PM' : 'AM';
+      const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+      return `${displayHour}:${minutes} ${period}`;
+    } else {
+      return time;
+    }
+  };
 
   const getTasksForDate = (date: string) => {
     return tasks.filter(task => task.date === date)
@@ -25,9 +41,24 @@ const CalendarView = ({ view, selectedDate, tasks, onTaskEdit, onDateChange, onT
 
   const handleDateClick = (date: Date) => {
     onDateChange(date);
-    if (onViewChange && view !== 'daily') {
+    if (onViewChange) {
       onViewChange('daily');
     }
+  };
+
+  const handleTaskToggle = (taskId: string, event: React.MouseEvent) => {
+    event.stopPropagation();
+    
+    // Add completion animation
+    const taskElement = (event.target as HTMLElement).closest('.task-item');
+    if (taskElement) {
+      taskElement.classList.add('animate-completion-celebrate');
+      setTimeout(() => {
+        taskElement.classList.remove('animate-completion-celebrate');
+      }, 600);
+    }
+    
+    onTaskToggle(taskId);
   };
 
   const renderDailyView = () => {
@@ -56,47 +87,48 @@ const CalendarView = ({ view, selectedDate, tasks, onTaskEdit, onDateChange, onT
                 task.startTime <= hourStr && task.endTime > hourStr
               );
 
+              const displayTime = userProfile?.dateFormat === '24h' 
+                ? `${hour.toString().padStart(2, '0')}:00`
+                : (hour === 0 ? '12 AM' : 
+                   hour < 12 ? `${hour} AM` : 
+                   hour === 12 ? '12 PM' : 
+                   `${hour - 12} PM`);
+
               return (
                 <div key={hour} className="flex border-b border-gray-100 py-3">
                   <div className="w-20 text-sm text-gray-600 flex-shrink-0 font-medium">
-                    {hour === 0 ? '12 AM' : 
-                     hour < 12 ? `${hour} AM` : 
-                     hour === 12 ? '12 PM' : 
-                     `${hour - 12} PM`}
+                    {displayTime}
                   </div>
                   <div className="flex-1 ml-6">
                     {hourTasks.map(task => (
                       <div
                         key={task.id}
-                        className={`${task.color} p-4 rounded-xl mb-2 border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer group glass-3d hover:scale-[1.02] ${
-                          task.completed ? 'opacity-60' : ''
+                        className={`task-item ${task.color} p-4 rounded-xl mb-2 border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer group glass-3d hover:scale-[1.02] ${
+                          task.completed ? 'opacity-60 task-completed' : ''
                         }`}
                         onClick={() => onTaskEdit(task)}
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3 flex-1">
                             <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onTaskToggle(task.id);
-                              }}
+                              onClick={(e) => handleTaskToggle(task.id, e)}
                               className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-300 hover:scale-110 ${
                                 task.completed 
-                                  ? 'bg-green-500 border-green-500 text-white' 
+                                  ? 'bg-green-500 border-green-500 text-white checkbox-checked' 
                                   : 'border-gray-400 hover:border-green-400'
                               }`}
                             >
-                              {task.completed && <Check className="w-3 h-3" />}
+                              {task.completed && <Check className="w-3 h-3 animate-checkmark-draw" />}
                             </button>
                             <div>
-                              <h4 className={`font-medium text-sm ${task.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>
+                              <h4 className={`font-medium text-sm transition-all duration-300 ${task.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>
                                 {task.title}
                               </h4>
                               <p className="text-xs text-gray-600">
-                                {task.startTime} - {task.endTime}
+                                {formatTime(task.startTime, userProfile?.dateFormat)} - {formatTime(task.endTime, userProfile?.dateFormat)}
                               </p>
                               {task.description && (
-                                <p className={`text-xs mt-1 ${task.completed ? 'text-gray-400' : 'text-gray-500'}`}>
+                                <p className={`text-xs mt-1 transition-all duration-300 ${task.completed ? 'text-gray-400' : 'text-gray-500'}`}>
                                   {task.description}
                                 </p>
                               )}
@@ -151,17 +183,14 @@ const CalendarView = ({ view, selectedDate, tasks, onTaskEdit, onDateChange, onT
                   {dayTasks.map(task => (
                     <div
                       key={task.id}
-                      className={`${task.color} p-2 rounded-lg text-xs cursor-pointer hover:shadow-lg transition-all duration-300 border border-gray-200 glass-3d hover:scale-[1.02] ${
+                      className={`task-item ${task.color} p-2 rounded-lg text-xs cursor-pointer hover:shadow-lg transition-all duration-300 border border-gray-200 glass-3d hover:scale-[1.02] ${
                         task.completed ? 'opacity-60' : ''
                       }`}
                       onClick={() => onTaskEdit(task)}
                     >
                       <div className="flex items-center gap-2">
                         <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onTaskToggle(task.id);
-                          }}
+                          onClick={(e) => handleTaskToggle(task.id, e)}
                           className={`w-3 h-3 rounded-full border flex items-center justify-center transition-all duration-300 hover:scale-110 ${
                             task.completed 
                               ? 'bg-green-500 border-green-500 text-white' 
@@ -174,7 +203,9 @@ const CalendarView = ({ view, selectedDate, tasks, onTaskEdit, onDateChange, onT
                           <div className={`font-medium truncate ${task.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>
                             {task.title}
                           </div>
-                          <div className="text-gray-700 truncate">{task.startTime}</div>
+                          <div className="text-gray-700 truncate">
+                            {formatTime(task.startTime, userProfile?.dateFormat)}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -237,7 +268,7 @@ const CalendarView = ({ view, selectedDate, tasks, onTaskEdit, onDateChange, onT
                   {dayTasks.slice(0, 2).map(task => (
                     <div
                       key={task.id}
-                      className={`${task.color} p-1 rounded text-xs truncate border border-gray-200 hover:shadow-sm transition-all duration-300 glass-3d hover:scale-[1.02] ${
+                      className={`task-item ${task.color} p-1 rounded text-xs truncate border border-gray-200 hover:shadow-sm transition-all duration-300 glass-3d hover:scale-[1.02] ${
                         task.completed ? 'opacity-60' : ''
                       }`}
                       onClick={(e) => {

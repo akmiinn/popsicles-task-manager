@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Calendar, Search, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
@@ -183,6 +182,7 @@ const Index = () => {
               onDateChange={setSelectedDate}
               onTaskToggle={toggleTaskCompletion}
               onViewChange={setCurrentView}
+              userProfile={userProfile}
             />
           </div>
         );
