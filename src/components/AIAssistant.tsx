@@ -1,206 +1,195 @@
-import { useState, useRef, useEffect } from 'react';
+
+import { useState } from 'react';
 import { Send, Bot, User } from 'lucide-react';
-import { Task, ChatMessage } from '../types';
+import { Task } from '../types';
 
 interface AIAssistantProps {
   onAddTask: (task: Omit<Task, 'id'>) => void;
   tasks: Task[];
 }
 
+interface Message {
+  id: string;
+  content: string;
+  isUser: boolean;
+  timestamp: Date;
+}
+
 const AIAssistant = ({ onAddTask, tasks }: AIAssistantProps) => {
-  const [messages, setMessages] = useState<ChatMessage[]>([
+  const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      content: "Hi! I'm your AI assistant. I can help you create tasks and manage your schedule. Try saying something like 'Schedule a meeting with John tomorrow at 2 PM' or 'Add workout session on Monday at 7 AM'.",
+      content: "Hi! I'm your AI assistant. I can help you create tasks and manage your schedule. Try saying things like 'Add workout session next Monday at 7 AM' or 'Schedule meeting on June 15th, 2025 at 2 PM'.",
       isUser: false,
       timestamp: new Date()
     }
   ]);
-  const [inputValue, setInputValue] = useState('');
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [inputMessage, setInputMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  const getRandomPastelColor = () => {
+    const pastelColors = [
+      'task-pastel-pink',
+      'task-pastel-blue',
+      'task-pastel-green',
+      'task-pastel-yellow',
+      'task-pastel-purple',
+      'task-pastel-orange',
+      'task-pastel-indigo',
+      'task-pastel-teal'
+    ];
+    return pastelColors[Math.floor(Math.random() * pastelColors.length)];
   };
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const parseDate = (text: string): string => {
+  const parseDate = (input: string): string => {
     const today = new Date();
-    const currentDay = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
-    
-    // Handle "coming [day]" patterns
-    const comingDayMatch = text.match(/coming\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)/i);
-    if (comingDayMatch) {
-      const dayName = comingDayMatch[1].toLowerCase();
-      const dayMap = { sunday: 0, monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5, saturday: 6 };
-      const targetDay = dayMap[dayName as keyof typeof dayMap];
-      
-      // Calculate days to add to get to the coming occurrence of that day
-      let daysToAdd = targetDay - currentDay;
-      if (daysToAdd <= 0) daysToAdd += 7; // If it's today or past, go to next week
-      
-      const targetDate = new Date(today);
-      targetDate.setDate(today.getDate() + daysToAdd);
-      return targetDate.toISOString().split('T')[0];
+    const inputLower = input.toLowerCase();
+
+    // Handle "next week [day]" or "coming [day]"
+    if (inputLower.includes('next week') || inputLower.includes('coming')) {
+      const dayMatch = inputLower.match(/(monday|tuesday|wednesday|thursday|friday|saturday|sunday)/);
+      if (dayMatch) {
+        const targetDay = dayMatch[1];
+        const daysOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+        const targetDayIndex = daysOfWeek.indexOf(targetDay);
+        
+        // Get next occurrence of that day
+        const nextWeek = new Date(today);
+        nextWeek.setDate(today.getDate() + 7); // Go to next week
+        
+        // Find the target day in next week
+        const daysUntilTarget = (targetDayIndex - nextWeek.getDay() + 7) % 7;
+        nextWeek.setDate(nextWeek.getDate() + daysUntilTarget);
+        
+        return nextWeek.toISOString().split('T')[0];
+      }
     }
 
-    // Handle "next [day]" patterns
-    const nextDayMatch = text.match(/next\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)/i);
-    if (nextDayMatch) {
-      const dayName = nextDayMatch[1].toLowerCase();
-      const dayMap = { sunday: 0, monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5, saturday: 6 };
-      const targetDay = dayMap[dayName as keyof typeof dayMap];
-      
-      let daysToAdd = targetDay - currentDay + 7; // Always next week
-      
-      const targetDate = new Date(today);
-      targetDate.setDate(today.getDate() + daysToAdd);
-      return targetDate.toISOString().split('T')[0];
+    // Handle specific dates like "15th June 2025", "June 15th, 2025", "15/6/2025"
+    const specificDatePatterns = [
+      /(\d{1,2})(st|nd|rd|th)?\s+(january|february|march|april|may|june|july|august|september|october|november|december)\s+(\d{4})/i,
+      /(january|february|march|april|may|june|july|august|september|october|november|december)\s+(\d{1,2})(st|nd|rd|th)?,?\s+(\d{4})/i,
+      /(\d{1,2})\/(\d{1,2})\/(\d{4})/,
+      /(\d{4})-(\d{1,2})-(\d{1,2})/
+    ];
+
+    for (const pattern of specificDatePatterns) {
+      const match = inputLower.match(pattern);
+      if (match) {
+        try {
+          let day, month, year;
+          
+          if (pattern === specificDatePatterns[0]) { // "15th June 2025"
+            day = parseInt(match[1]);
+            month = getMonthNumber(match[3]);
+            year = parseInt(match[4]);
+          } else if (pattern === specificDatePatterns[1]) { // "June 15th, 2025"
+            day = parseInt(match[2]);
+            month = getMonthNumber(match[1]);
+            year = parseInt(match[4]);
+          } else if (pattern === specificDatePatterns[2]) { // "15/6/2025"
+            day = parseInt(match[1]);
+            month = parseInt(match[2]);
+            year = parseInt(match[3]);
+          } else if (pattern === specificDatePatterns[3]) { // "2025-6-15"
+            year = parseInt(match[1]);
+            month = parseInt(match[2]);
+            day = parseInt(match[3]);
+          }
+          
+          const date = new Date(year, month - 1, day);
+          if (!isNaN(date.getTime())) {
+            return date.toISOString().split('T')[0];
+          }
+        } catch (e) {
+          // Continue to next pattern
+        }
+      }
     }
 
-    // Handle specific dates like "15th June 2025", "June 15 2025", "15/6/2025"
-    const specificDateMatch = text.match(/(\d{1,2})(?:st|nd|rd|th)?\s+(january|february|march|april|may|june|july|august|september|october|november|december)\s+(\d{4})/i);
-    if (specificDateMatch) {
-      const day = parseInt(specificDateMatch[1]);
-      const monthName = specificDateMatch[2].toLowerCase();
-      const year = parseInt(specificDateMatch[3]);
-      
-      const monthMap = {
-        january: 0, february: 1, march: 2, april: 3, may: 4, june: 5,
-        july: 6, august: 7, september: 8, october: 9, november: 10, december: 11
-      };
-      
-      const month = monthMap[monthName as keyof typeof monthMap];
-      const targetDate = new Date(year, month, day);
-      return targetDate.toISOString().split('T')[0];
-    }
-
-    // Handle "on [day]" patterns for this week
-    const onDayMatch = text.match(/on\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)/i);
-    if (onDayMatch) {
-      const dayName = onDayMatch[1].toLowerCase();
-      const dayMap = { sunday: 0, monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5, saturday: 6 };
-      const targetDay = dayMap[dayName as keyof typeof dayMap];
-      
-      // Calculate days to add - if it's past this week's occurrence, go to next week
-      let daysToAdd = targetDay - currentDay;
-      if (daysToAdd < 0) daysToAdd += 7;
-      
-      const targetDate = new Date(today);
-      targetDate.setDate(today.getDate() + daysToAdd);
-      return targetDate.toISOString().split('T')[0];
-    }
-
-    // Handle relative dates
-    if (text.includes('today')) {
+    // Handle relative days
+    if (inputLower.includes('today')) {
       return today.toISOString().split('T')[0];
     }
     
-    if (text.includes('tomorrow')) {
+    if (inputLower.includes('tomorrow')) {
       const tomorrow = new Date(today);
       tomorrow.setDate(today.getDate() + 1);
       return tomorrow.toISOString().split('T')[0];
     }
 
-    // Default to today if no date pattern found
+    // Handle this week days
+    const dayMatch = inputLower.match(/(monday|tuesday|wednesday|thursday|friday|saturday|sunday)/);
+    if (dayMatch) {
+      const targetDay = dayMatch[1];
+      const daysOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+      const targetDayIndex = daysOfWeek.indexOf(targetDay);
+      
+      const daysUntilTarget = (targetDayIndex - today.getDay() + 7) % 7;
+      const targetDate = new Date(today);
+      targetDate.setDate(today.getDate() + (daysUntilTarget === 0 ? 7 : daysUntilTarget));
+      
+      return targetDate.toISOString().split('T')[0];
+    }
+
+    // Default to today if no date found
     return today.toISOString().split('T')[0];
   };
 
-  const parseTime = (text: string): { startTime: string; endTime: string } => {
-    // Handle time ranges like "2-3 PM", "2:30-4:00 PM"
-    const timeRangeMatch = text.match(/(\d{1,2})(?::(\d{2}))?\s*(?:-|to)\s*(\d{1,2})(?::(\d{2}))?\s*(am|pm)/i);
-    if (timeRangeMatch) {
-      let startHour = parseInt(timeRangeMatch[1]);
-      const startMin = timeRangeMatch[2] ? timeRangeMatch[2] : '00';
-      let endHour = parseInt(timeRangeMatch[3]);
-      const endMin = timeRangeMatch[4] ? timeRangeMatch[4] : '00';
-      const period = timeRangeMatch[5].toLowerCase();
-
-      if (period === 'pm' && startHour !== 12) startHour += 12;
-      if (period === 'am' && startHour === 12) startHour = 0;
-      if (period === 'pm' && endHour !== 12) endHour += 12;
-      if (period === 'am' && endHour === 12) endHour = 0;
-
-      return {
-        startTime: `${startHour.toString().padStart(2, '0')}:${startMin}`,
-        endTime: `${endHour.toString().padStart(2, '0')}:${endMin}`
-      };
-    }
-
-    // Handle single times like "2 PM", "14:30", "7:00 AM"
-    const singleTimeMatch = text.match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm)/i);
-    if (singleTimeMatch) {
-      let hour = parseInt(singleTimeMatch[1]);
-      const min = singleTimeMatch[2] || '00';
-      const period = singleTimeMatch[3].toLowerCase();
-
-      if (period === 'pm' && hour !== 12) hour += 12;
-      if (period === 'am' && hour === 12) hour = 0;
-
-      const startTime = `${hour.toString().padStart(2, '0')}:${min}`;
-      const endHour = hour + 1;
-      const endTime = `${endHour.toString().padStart(2, '0')}:${min}`;
-
-      return { startTime, endTime };
-    }
-
-    // Handle 24-hour format
-    const time24Match = text.match(/(\d{1,2}):(\d{2})/);
-    if (time24Match) {
-      const hour = parseInt(time24Match[1]);
-      const min = time24Match[2];
-      const startTime = `${hour.toString().padStart(2, '0')}:${min}`;
-      const endHour = hour + 1;
-      const endTime = `${endHour.toString().padStart(2, '0')}:${min}`;
-
-      return { startTime, endTime };
-    }
-
-    // Default to 9 AM - 10 AM
-    return { startTime: '09:00', endTime: '10:00' };
+  const getMonthNumber = (monthName: string): number => {
+    const months = {
+      'january': 1, 'february': 2, 'march': 3, 'april': 4,
+      'may': 5, 'june': 6, 'july': 7, 'august': 8,
+      'september': 9, 'october': 10, 'november': 11, 'december': 12
+    };
+    return months[monthName.toLowerCase()] || 1;
   };
 
-  const extractTaskFromMessage = (message: string): Omit<Task, 'id'> | null => {
+  const parseTime = (input: string): { startTime: string; endTime: string } => {
+    const timeMatch = input.match(/(\d{1,2})\s*(:\d{2})?\s*(am|pm|AM|PM)?/);
+    
+    if (timeMatch) {
+      let hour = parseInt(timeMatch[1]);
+      const minutes = timeMatch[2] ? timeMatch[2].substring(1) : '00';
+      const period = timeMatch[3] ? timeMatch[3].toLowerCase() : '';
+      
+      // Convert to 24-hour format
+      if (period === 'pm' && hour !== 12) {
+        hour += 12;
+      } else if (period === 'am' && hour === 12) {
+        hour = 0;
+      }
+      
+      const startTime = `${hour.toString().padStart(2, '0')}:${minutes}`;
+      const endHour = hour + 1;
+      const endTime = `${endHour.toString().padStart(2, '0')}:${minutes}`;
+      
+      return { startTime, endTime };
+    }
+    
+    // Default to next available hour
+    const now = new Date();
+    const nextHour = now.getHours() + 1;
+    return {
+      startTime: `${nextHour.toString().padStart(2, '0')}:00`,
+      endTime: `${(nextHour + 1).toString().padStart(2, '0')}:00`
+    };
+  };
+
+  const parseTaskFromMessage = (message: string): Omit<Task, 'id'> | null => {
     const lowerMessage = message.toLowerCase();
     
-    // Check if this looks like a task creation request
-    const taskKeywords = ['schedule', 'add', 'create', 'meeting', 'appointment', 'task', 'reminder', 'book'];
-    const hasTaskKeyword = taskKeywords.some(keyword => lowerMessage.includes(keyword));
+    // Extract task title (remove command words)
+    let title = message.replace(/^(add|create|schedule|make|set up|plan)\s+/i, '');
+    title = title.replace(/\s+(on|at|for|from|to)\s+.*/i, '');
     
-    if (!hasTaskKeyword) {
-      return null;
-    }
-
-    // Extract title
-    let title = message;
-    
-    // Remove task keywords from title
-    taskKeywords.forEach(keyword => {
-      const regex = new RegExp(`\\b${keyword}\\b`, 'gi');
-      title = title.replace(regex, '').trim();
-    });
-    
-    // Remove time and date patterns from title
-    title = title.replace(/\b(?:at|on|from|to)\s+\d{1,2}(?::\d{2})?\s*(?:am|pm)?\b/gi, '');
-    title = title.replace(/\b(?:today|tomorrow|monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/gi, '');
-    title = title.replace(/\bcoming\s+(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/gi, '');
-    title = title.replace(/\bnext\s+(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/gi, '');
-    title = title.replace(/\d{1,2}(?:st|nd|rd|th)?\s+(?:january|february|march|april|may|june|july|august|september|october|november|december)\s+\d{4}/gi, '');
-    
-    // Clean up title
-    title = title.replace(/\s+/g, ' ').trim();
-    title = title.replace(/^(a|an|the)\s+/i, '');
-    
-    if (!title) {
-      title = 'New Task';
+    if (!title.trim()) {
+      title = "New Task";
     }
 
     const date = parseDate(message);
     const { startTime, endTime } = parseTime(message);
-
+    
     // Determine priority based on keywords
     let priority: 'low' | 'medium' | 'high' = 'medium';
     if (lowerMessage.includes('urgent') || lowerMessage.includes('important') || lowerMessage.includes('asap')) {
@@ -209,127 +198,135 @@ const AIAssistant = ({ onAddTask, tasks }: AIAssistantProps) => {
       priority = 'low';
     }
 
-    // Determine color based on task type
-    let color = 'bg-blue-100';
-    if (lowerMessage.includes('meeting') || lowerMessage.includes('call')) color = 'bg-blue-100';
-    else if (lowerMessage.includes('workout') || lowerMessage.includes('exercise') || lowerMessage.includes('gym')) color = 'bg-green-100';
-    else if (lowerMessage.includes('meal') || lowerMessage.includes('lunch') || lowerMessage.includes('dinner')) color = 'bg-orange-100';
-    else if (lowerMessage.includes('doctor') || lowerMessage.includes('appointment') || lowerMessage.includes('medical')) color = 'bg-red-100';
-    else if (lowerMessage.includes('study') || lowerMessage.includes('learn') || lowerMessage.includes('course')) color = 'bg-purple-100';
-
     return {
-      title: title.charAt(0).toUpperCase() + title.slice(1),
-      description: `Created from: "${message}"`,
+      title: title.trim(),
+      description: '',
       startTime,
       endTime,
       date,
       priority,
-      color,
+      color: getRandomPastelColor(),
       completed: false
     };
   };
 
-  const handleSendMessage = () => {
-    if (!inputValue.trim()) return;
+  const handleSendMessage = async () => {
+    if (!inputMessage.trim()) return;
 
-    const userMessage: ChatMessage = {
+    const userMessage: Message = {
       id: Date.now().toString(),
-      content: inputValue,
+      content: inputMessage,
       isUser: true,
       timestamp: new Date()
     };
 
     setMessages(prev => [...prev, userMessage]);
+    setInputMessage('');
+    setIsLoading(true);
 
-    // Try to extract task from message
-    const extractedTask = extractTaskFromMessage(inputValue);
-    
-    let aiResponse: ChatMessage;
-    if (extractedTask) {
-      onAddTask(extractedTask);
-      aiResponse = {
-        id: (Date.now() + 1).toString(),
-        content: `Great! I've created a task "${extractedTask.title}" for ${new Date(extractedTask.date).toLocaleDateString()} from ${extractedTask.startTime} to ${extractedTask.endTime}. You can view and edit it in your calendar.`,
-        isUser: false,
-        timestamp: new Date()
-      };
-    } else {
-      const responses = [
-        "I'd be happy to help you create a task! Try telling me something like 'Schedule a meeting with Sarah tomorrow at 3 PM' or 'Add gym session on Monday at 7 AM'.",
-        "I can help you manage your schedule. Just tell me what you'd like to do, when, and I'll create a task for you!",
-        "To create a task, you can say something like 'Book dentist appointment next Friday at 2 PM' or 'Add team meeting on Wednesday at 10 AM'."
-      ];
-      
-      aiResponse = {
-        id: (Date.now() + 1).toString(),
-        content: responses[Math.floor(Math.random() * responses.length)],
-        isUser: false,
-        timestamp: new Date()
-      };
-    }
-
+    // Simulate AI processing
     setTimeout(() => {
-      setMessages(prev => [...prev, aiResponse]);
-    }, 500);
-
-    setInputValue('');
+      const task = parseTaskFromMessage(inputMessage);
+      
+      if (task) {
+        onAddTask(task);
+        
+        const aiResponse: Message = {
+          id: (Date.now() + 1).toString(),
+          content: `Great! I've created a task "${task.title}" for ${new Date(task.date).toLocaleDateString()} from ${task.startTime} to ${task.endTime}. You can view and edit it in your calendar.`,
+          isUser: false,
+          timestamp: new Date()
+        };
+        
+        setMessages(prev => [...prev, aiResponse]);
+      } else {
+        const aiResponse: Message = {
+          id: (Date.now() + 1).toString(),
+          content: "I couldn't understand that request. Try something like 'Add workout session next Monday at 7 AM' or 'Schedule meeting on June 15th, 2025 at 2 PM'.",
+          isUser: false,
+          timestamp: new Date()
+        };
+        
+        setMessages(prev => [...prev, aiResponse]);
+      }
+      
+      setIsLoading(false);
+    }, 1000);
   };
 
   return (
-    <div className="flex-1 p-4">
+    <div className="flex-1 p-4 animate-fade-in">
       <div className="max-w-4xl mx-auto h-full flex flex-col">
-        <div className="glass-3d rounded-lg p-4 mb-4">
-          <h2 className="text-lg font-medium text-gray-900 mb-2">AI Assistant</h2>
-          <p className="text-sm text-gray-700">
-            Let me help you create and manage your tasks. Just describe what you want to schedule!
-          </p>
-        </div>
+        <div className="glass-3d rounded-2xl shadow-xl border border-gray-300 flex-1 flex flex-col overflow-hidden animate-scale-in">
+          {/* Header */}
+          <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100">
+            <div className="flex items-center gap-3">
+              <Bot className="w-6 h-6 text-gray-700 animate-pulse" />
+              <div>
+                <h2 className="text-lg font-medium text-gray-900">AI Assistant</h2>
+                <p className="text-sm text-gray-600">Your intelligent scheduling companion</p>
+              </div>
+            </div>
+          </div>
 
-        <div className="flex-1 glass-3d rounded-lg overflow-hidden flex flex-col">
-          <div className="flex-1 p-4 overflow-y-auto space-y-4">
-            {messages.map((message) => (
+          {/* Messages */}
+          <div className="flex-1 p-6 overflow-y-auto space-y-4">
+            {messages.map((message, index) => (
               <div
                 key={message.id}
-                className={`flex items-start gap-3 animate-fade-in ${
-                  message.isUser ? 'flex-row-reverse' : ''
-                }`}
+                className={`flex gap-3 animate-slide-up`}
+                style={{ animationDelay: `${index * 0.1}s` }}
               >
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 glass-3d ${
-                  message.isUser ? 'bg-gray-900 text-white' : 'bg-white text-gray-700'
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-500 hover:scale-110 ${
+                  message.isUser ? 'bg-gray-600 text-white' : 'bg-gray-200 text-gray-700'
                 }`}>
                   {message.isUser ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
                 </div>
-                <div className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl glass-3d ${
+                <div className={`flex-1 p-4 rounded-2xl glass-3d border transition-all duration-500 hover:scale-[1.01] transform-gpu ${
                   message.isUser 
-                    ? 'bg-gray-900 text-white' 
-                    : 'bg-white text-gray-900'
+                    ? 'bg-gray-100 border-gray-200 text-gray-900' 
+                    : 'bg-gray-50 border-gray-200 text-gray-900'
                 }`}>
-                  <p className="text-sm">{message.content}</p>
-                  <p className="text-xs opacity-70 mt-1">
-                    {message.timestamp.toLocaleTimeString([], { 
-                      hour: '2-digit', 
-                      minute: '2-digit' 
-                    })}
+                  <p className="text-sm leading-relaxed">{message.content}</p>
+                  <p className="text-xs text-gray-500 mt-2">
+                    {message.timestamp.toLocaleTimeString()}
                   </p>
                 </div>
               </div>
             ))}
-            <div ref={messagesEndRef} />
+            
+            {isLoading && (
+              <div className="flex gap-3 animate-fade-in">
+                <div className="w-8 h-8 rounded-full bg-gray-200 text-gray-700 flex items-center justify-center animate-pulse">
+                  <Bot className="w-4 h-4" />
+                </div>
+                <div className="flex-1 p-4 rounded-2xl glass-3d border bg-gray-50 border-gray-200">
+                  <div className="flex space-x-2">
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
-          <div className="p-4 border-t border-gray-200">
-            <div className="flex gap-2">
+          {/* Input */}
+          <div className="p-6 border-t border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100">
+            <div className="flex gap-3">
               <input
                 type="text"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                placeholder="Type your message..."
-                className="flex-1 px-4 py-3 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-300 glass-3d text-sm transition-all duration-300 focus:scale-[1.02]"
+                placeholder="Type your message... (e.g., 'Add workout session next Monday at 7 AM')"
+                className="flex-1 px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-300 shadow-sm glass-3d text-sm transition-all duration-500 focus:scale-[1.02] transform-gpu"
+                disabled={isLoading}
               />
               <button
                 onClick={handleSendMessage}
-                className="px-4 py-3 bg-gray-900 text-white rounded-xl hover:bg-gray-800 transition-all duration-300 shadow-lg hover:scale-105 glass-3d"
+                disabled={isLoading || !inputMessage.trim()}
+                className="px-6 py-3 rounded-xl transition-all duration-500 shadow-lg hover:shadow-xl text-sm font-medium hover:scale-105 transform-gpu glossy-button-dark disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Send className="w-4 h-4" />
               </button>
