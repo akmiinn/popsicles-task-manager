@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Calendar, Search, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
@@ -140,7 +141,7 @@ const Index = () => {
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => navigateDate('prev')}
-                  className="p-2 glossy-button text-gray-700 rounded-lg transition-all duration-200"
+                  className="p-2 glossy-button-3d text-gray-700 rounded-lg transition-all duration-300 hover:scale-110"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
@@ -153,7 +154,7 @@ const Index = () => {
                 </h2>
                 <button
                   onClick={() => navigateDate('next')}
-                  className="p-2 glossy-button text-gray-700 rounded-lg transition-all duration-200"
+                  className="p-2 glossy-button-3d text-gray-700 rounded-lg transition-all duration-300 hover:scale-110"
                 >
                   <ChevronRight className="w-4 h-4" />
                 </button>
@@ -163,10 +164,10 @@ const Index = () => {
                   <button
                     key={view}
                     onClick={() => setCurrentView(view)}
-                    className={`px-4 py-2 rounded-lg transition-all duration-200 capitalize text-sm ${
+                    className={`px-4 py-2 rounded-lg transition-all duration-300 capitalize text-sm hover:scale-105 ${
                       currentView === view
                         ? 'bg-gray-900 text-white shadow-lg'
-                        : 'glossy-button text-gray-700'
+                        : 'glossy-button-3d text-gray-700'
                     }`}
                   >
                     {view}
@@ -181,6 +182,7 @@ const Index = () => {
               onTaskEdit={handleTaskEdit}
               onDateChange={setSelectedDate}
               onTaskToggle={toggleTaskCompletion}
+              onViewChange={setCurrentView}
             />
           </div>
         );
@@ -212,7 +214,7 @@ const Index = () => {
       
       <div className="flex-1 flex flex-col">
         {/* Top Navigation */}
-        <div className="glass-effect border-b border-gray-200 px-4 py-3">
+        <div className="glass-3d border-b border-gray-200 px-4 py-3">
           <div className="flex items-center justify-between">
             <h1 className="text-lg font-medium text-gray-900">Popsicles</h1>
             <div className="flex items-center gap-3">
@@ -223,13 +225,13 @@ const Index = () => {
                   placeholder="Search tasks..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 w-56 glass-effect text-sm"
+                  className="pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 w-56 glass-3d text-sm transition-all duration-300 focus:scale-[1.02]"
                 />
               </div>
               {currentPage === 'calendar' && (
                 <button
                   onClick={() => setShowTaskOverlay(true)}
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-all duration-200 shadow-lg text-sm"
+                  className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-all duration-300 shadow-lg text-sm hover:scale-105 glossy-button-3d"
                 >
                   <Plus className="w-4 h-4" />
                   Add Task

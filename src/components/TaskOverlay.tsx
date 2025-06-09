@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { X, ChevronDown } from 'lucide-react';
+import { X } from 'lucide-react';
 import { Task } from '../types';
 import {
   Select,
@@ -32,6 +32,7 @@ const TaskOverlay = ({ isOpen, onClose, onSave, editingTask, selectedDate }: Tas
 
   useEffect(() => {
     if (editingTask) {
+      // Show all prior info when editing
       setFormData({
         title: editingTask.title,
         description: editingTask.description,
@@ -43,7 +44,7 @@ const TaskOverlay = ({ isOpen, onClose, onSave, editingTask, selectedDate }: Tas
         completed: editingTask.completed
       });
     } else {
-      // Set default time (next available hour)
+      // Set default time (next available hour) when creating new task
       const now = new Date();
       const nextHour = new Date(now.getTime() + 60 * 60 * 1000);
       const defaultStart = `${nextHour.getHours().toString().padStart(2, '0')}:00`;
@@ -60,7 +61,7 @@ const TaskOverlay = ({ isOpen, onClose, onSave, editingTask, selectedDate }: Tas
         completed: false
       });
     }
-  }, [editingTask, selectedDate]);
+  }, [editingTask, selectedDate, isOpen]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,28 +73,28 @@ const TaskOverlay = ({ isOpen, onClose, onSave, editingTask, selectedDate }: Tas
   };
 
   const colorOptions = [
-    { value: 'bg-pink-100', label: 'Pink', preview: '#fce7f3' },
-    { value: 'bg-blue-100', label: 'Blue', preview: '#dbeafe' },
-    { value: 'bg-green-100', label: 'Green', preview: '#dcfce7' },
-    { value: 'bg-yellow-100', label: 'Yellow', preview: '#fef3c7' },
-    { value: 'bg-purple-100', label: 'Purple', preview: '#f3e8ff' },
-    { value: 'bg-orange-100', label: 'Orange', preview: '#fed7aa' },
-    { value: 'bg-indigo-100', label: 'Indigo', preview: '#e0e7ff' },
-    { value: 'bg-teal-100', label: 'Teal', preview: '#ccfbf1' },
+    { value: 'bg-pink-100', label: 'Pink', preview: 'bg-pink-100' },
+    { value: 'bg-blue-100', label: 'Blue', preview: 'bg-blue-100' },
+    { value: 'bg-green-100', label: 'Green', preview: 'bg-green-100' },
+    { value: 'bg-yellow-100', label: 'Yellow', preview: 'bg-yellow-100' },
+    { value: 'bg-purple-100', label: 'Purple', preview: 'bg-purple-100' },
+    { value: 'bg-orange-100', label: 'Orange', preview: 'bg-orange-100' },
+    { value: 'bg-indigo-100', label: 'Indigo', preview: 'bg-indigo-100' },
+    { value: 'bg-teal-100', label: 'Teal', preview: 'bg-teal-100' },
   ];
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50">
-      <div className="bg-white/95 backdrop-blur-xl rounded-2xl p-6 w-96 max-h-[90vh] overflow-y-auto shadow-2xl border border-gray-200/30">
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
+      <div className="glass-3d rounded-2xl p-6 w-96 max-h-[90vh] overflow-y-auto shadow-2xl border border-white/20 animate-scale-in">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-light text-gray-900">
+          <h3 className="text-xl font-medium text-gray-900">
             {editingTask ? 'Edit Task' : 'New Task'}
           </h3>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100/50 rounded-xl transition-all duration-200"
+            className="p-2 hover:bg-gray-100/50 rounded-xl transition-all duration-300 hover:scale-110"
           >
             <X className="w-5 h-5 text-gray-500" />
           </button>
@@ -108,7 +109,7 @@ const TaskOverlay = ({ isOpen, onClose, onSave, editingTask, selectedDate }: Tas
               type="text"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-300 shadow-sm bg-white/80 backdrop-blur-sm text-sm"
+              className="w-full px-4 py-3 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-300 shadow-sm glass-3d text-sm transition-all duration-300 focus:scale-[1.02]"
               placeholder="Task title"
               required
             />
@@ -121,7 +122,7 @@ const TaskOverlay = ({ isOpen, onClose, onSave, editingTask, selectedDate }: Tas
             <textarea
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-300 h-20 resize-none shadow-sm bg-white/80 backdrop-blur-sm text-sm"
+              className="w-full px-4 py-3 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-300 h-20 resize-none shadow-sm glass-3d text-sm transition-all duration-300 focus:scale-[1.02]"
               placeholder="Optional description"
             />
           </div>
@@ -135,7 +136,7 @@ const TaskOverlay = ({ isOpen, onClose, onSave, editingTask, selectedDate }: Tas
                 type="time"
                 value={formData.startTime}
                 onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-300 shadow-sm bg-white/80 backdrop-blur-sm text-sm"
+                className="w-full px-4 py-3 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-300 shadow-sm glass-3d text-sm transition-all duration-300 focus:scale-[1.02]"
                 required
               />
             </div>
@@ -147,7 +148,7 @@ const TaskOverlay = ({ isOpen, onClose, onSave, editingTask, selectedDate }: Tas
                 type="time"
                 value={formData.endTime}
                 onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-300 shadow-sm bg-white/80 backdrop-blur-sm text-sm"
+                className="w-full px-4 py-3 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-300 shadow-sm glass-3d text-sm transition-all duration-300 focus:scale-[1.02]"
                 required
               />
             </div>
@@ -161,7 +162,7 @@ const TaskOverlay = ({ isOpen, onClose, onSave, editingTask, selectedDate }: Tas
               type="date"
               value={formData.date}
               onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-300 shadow-sm bg-white/80 backdrop-blur-sm text-sm"
+              className="w-full px-4 py-3 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-300 shadow-sm glass-3d text-sm transition-all duration-300 focus:scale-[1.02]"
               required
             />
           </div>
@@ -171,13 +172,13 @@ const TaskOverlay = ({ isOpen, onClose, onSave, editingTask, selectedDate }: Tas
               Priority
             </label>
             <Select value={formData.priority} onValueChange={(value) => setFormData({ ...formData, priority: value as 'low' | 'medium' | 'high' })}>
-              <SelectTrigger className="w-full px-4 py-3 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-300 shadow-sm bg-white/80 backdrop-blur-sm text-sm">
+              <SelectTrigger className="w-full px-4 py-3 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-300 shadow-sm glass-3d text-sm transition-all duration-300 hover:scale-[1.02]">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-white/95 backdrop-blur-xl border border-gray-200/50 rounded-xl shadow-2xl">
-                <SelectItem value="high" className="text-sm hover:bg-gray-50/50 rounded-lg">High Priority</SelectItem>
-                <SelectItem value="medium" className="text-sm hover:bg-gray-50/50 rounded-lg">Medium Priority</SelectItem>
-                <SelectItem value="low" className="text-sm hover:bg-gray-50/50 rounded-lg">Low Priority</SelectItem>
+              <SelectContent>
+                <SelectItem value="high">High Priority</SelectItem>
+                <SelectItem value="medium">Medium Priority</SelectItem>
+                <SelectItem value="low">Low Priority</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -187,23 +188,17 @@ const TaskOverlay = ({ isOpen, onClose, onSave, editingTask, selectedDate }: Tas
               Color
             </label>
             <Select value={formData.color} onValueChange={(value) => setFormData({ ...formData, color: value })}>
-              <SelectTrigger className="w-full px-4 py-3 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-300 shadow-sm bg-white/80 backdrop-blur-sm text-sm">
+              <SelectTrigger className="w-full px-4 py-3 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-300 shadow-sm glass-3d text-sm transition-all duration-300 hover:scale-[1.02]">
                 <div className="flex items-center gap-3">
-                  <div 
-                    className={`w-4 h-4 rounded-full ${formData.color}`}
-                    style={{ backgroundColor: colorOptions.find(c => c.value === formData.color)?.preview }}
-                  />
+                  <div className={`w-4 h-4 rounded-full ${formData.color}`} />
                   <SelectValue />
                 </div>
               </SelectTrigger>
-              <SelectContent className="bg-white/95 backdrop-blur-xl border border-gray-200/50 rounded-xl shadow-2xl">
+              <SelectContent>
                 {colorOptions.map((color) => (
-                  <SelectItem key={color.value} value={color.value} className="text-sm hover:bg-gray-50/50 rounded-lg">
+                  <SelectItem key={color.value} value={color.value}>
                     <div className="flex items-center gap-3">
-                      <div 
-                        className="w-4 h-4 rounded-full" 
-                        style={{ backgroundColor: color.preview }}
-                      />
+                      <div className={`w-4 h-4 rounded-full ${color.preview}`} />
                       <span>{color.label}</span>
                     </div>
                   </SelectItem>
@@ -219,7 +214,7 @@ const TaskOverlay = ({ isOpen, onClose, onSave, editingTask, selectedDate }: Tas
                 id="completed"
                 checked={formData.completed}
                 onChange={(e) => setFormData({ ...formData, completed: e.target.checked })}
-                className="w-4 h-4 text-gray-600 rounded focus:ring-gray-300"
+                className="w-4 h-4 text-gray-600 rounded focus:ring-gray-300 transition-all duration-300"
               />
               <label htmlFor="completed" className="text-sm font-medium text-gray-700">
                 Mark as completed
@@ -231,13 +226,13 @@ const TaskOverlay = ({ isOpen, onClose, onSave, editingTask, selectedDate }: Tas
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-6 py-3 border border-gray-300 text-gray-600 rounded-xl hover:bg-gray-50/50 transition-all duration-200 shadow-sm text-sm font-medium"
+              className="flex-1 px-6 py-3 border border-gray-300 text-gray-600 rounded-xl hover:bg-gray-50/50 transition-all duration-300 shadow-sm text-sm font-medium hover:scale-[1.02] glass-3d"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex-1 px-6 py-3 bg-gray-900 text-white rounded-xl hover:bg-gray-800 transition-all duration-200 shadow-lg hover:shadow-xl text-sm font-medium"
+              className="flex-1 px-6 py-3 bg-gray-900 text-white rounded-xl hover:bg-gray-800 transition-all duration-300 shadow-lg hover:shadow-xl text-sm font-medium hover:scale-[1.02] glossy-button-3d"
             >
               {editingTask ? 'Update' : 'Create'}
             </button>

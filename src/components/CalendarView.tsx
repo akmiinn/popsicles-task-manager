@@ -8,9 +8,10 @@ interface CalendarViewProps {
   onTaskEdit: (task: Task) => void;
   onDateChange: (date: Date) => void;
   onTaskToggle: (taskId: string) => void;
+  onViewChange?: (view: CalendarViewType) => void;
 }
 
-const CalendarView = ({ view, selectedDate, tasks, onTaskEdit, onDateChange, onTaskToggle }: CalendarViewProps) => {
+const CalendarView = ({ view, selectedDate, tasks, onTaskEdit, onDateChange, onTaskToggle, onViewChange }: CalendarViewProps) => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
@@ -22,6 +23,13 @@ const CalendarView = ({ view, selectedDate, tasks, onTaskEdit, onDateChange, onT
       });
   };
 
+  const handleDateClick = (date: Date) => {
+    onDateChange(date);
+    if (onViewChange && view !== 'daily') {
+      onViewChange('daily');
+    }
+  };
+
   const renderDailyView = () => {
     const dateStr = selectedDate.toISOString().split('T')[0];
     const dayTasks = getTasksForDate(dateStr);
@@ -29,7 +37,7 @@ const CalendarView = ({ view, selectedDate, tasks, onTaskEdit, onDateChange, onT
     const hours = Array.from({ length: 24 }, (_, i) => i);
 
     return (
-      <div className="glass-effect rounded-2xl shadow-xl border border-gray-300 overflow-hidden">
+      <div className="glass-3d rounded-2xl shadow-xl border border-gray-300 overflow-hidden animate-fade-in">
         <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100">
           <h3 className="font-medium text-gray-900">
             {selectedDate.toLocaleDateString('en-US', { 
@@ -60,7 +68,7 @@ const CalendarView = ({ view, selectedDate, tasks, onTaskEdit, onDateChange, onT
                     {hourTasks.map(task => (
                       <div
                         key={task.id}
-                        className={`${task.color} p-4 rounded-xl mb-2 border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer group glass-effect ${
+                        className={`${task.color} p-4 rounded-xl mb-2 border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer group glass-3d hover:scale-[1.02] ${
                           task.completed ? 'opacity-60' : ''
                         }`}
                         onClick={() => onTaskEdit(task)}
@@ -72,7 +80,7 @@ const CalendarView = ({ view, selectedDate, tasks, onTaskEdit, onDateChange, onT
                                 e.stopPropagation();
                                 onTaskToggle(task.id);
                               }}
-                              className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${
+                              className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-300 hover:scale-110 ${
                                 task.completed 
                                   ? 'bg-green-500 border-green-500 text-white' 
                                   : 'border-gray-400 hover:border-green-400'
@@ -94,7 +102,7 @@ const CalendarView = ({ view, selectedDate, tasks, onTaskEdit, onDateChange, onT
                               )}
                             </div>
                           </div>
-                          <Edit2 className="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          <Edit2 className="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-all duration-300" />
                         </div>
                       </div>
                     ))}
@@ -119,16 +127,16 @@ const CalendarView = ({ view, selectedDate, tasks, onTaskEdit, onDateChange, onT
     });
 
     return (
-      <div className="glass-effect rounded-2xl shadow-xl border border-gray-300 overflow-hidden">
+      <div className="glass-3d rounded-2xl shadow-xl border border-gray-300 overflow-hidden animate-fade-in">
         <div className="grid grid-cols-7 border-b border-gray-200">
           {weekDays.map((day, index) => (
             <div key={index} className="p-4 text-center border-r border-gray-200 last:border-r-0 bg-gradient-to-b from-gray-50 to-white">
               <div className="text-sm text-gray-600">
                 {day.toLocaleDateString('en-US', { weekday: 'short' })}
               </div>
-              <div className={`text-lg font-medium mt-1 ${
+              <div className={`text-lg font-medium mt-1 cursor-pointer hover:scale-110 transition-all duration-300 ${
                 day.toDateString() === today.toDateString() ? 'text-gray-900' : 'text-gray-800'
-              }`}>
+              }`} onClick={() => handleDateClick(day)}>
                 {day.getDate()}
               </div>
             </div>
@@ -143,7 +151,7 @@ const CalendarView = ({ view, selectedDate, tasks, onTaskEdit, onDateChange, onT
                   {dayTasks.map(task => (
                     <div
                       key={task.id}
-                      className={`${task.color} p-2 rounded-lg text-xs cursor-pointer hover:shadow-lg transition-all duration-200 border border-gray-200 glass-effect ${
+                      className={`${task.color} p-2 rounded-lg text-xs cursor-pointer hover:shadow-lg transition-all duration-300 border border-gray-200 glass-3d hover:scale-[1.02] ${
                         task.completed ? 'opacity-60' : ''
                       }`}
                       onClick={() => onTaskEdit(task)}
@@ -154,7 +162,7 @@ const CalendarView = ({ view, selectedDate, tasks, onTaskEdit, onDateChange, onT
                             e.stopPropagation();
                             onTaskToggle(task.id);
                           }}
-                          className={`w-3 h-3 rounded-full border flex items-center justify-center ${
+                          className={`w-3 h-3 rounded-full border flex items-center justify-center transition-all duration-300 hover:scale-110 ${
                             task.completed 
                               ? 'bg-green-500 border-green-500 text-white' 
                               : 'border-gray-400'
@@ -197,7 +205,7 @@ const CalendarView = ({ view, selectedDate, tasks, onTaskEdit, onDateChange, onT
     }
 
     return (
-      <div className="glass-effect rounded-2xl shadow-xl border border-gray-300 overflow-hidden">
+      <div className="glass-3d rounded-2xl shadow-xl border border-gray-300 overflow-hidden animate-fade-in">
         <div className="grid grid-cols-7 border-b border-gray-200">
           {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
             <div key={day} className="p-4 text-center text-sm font-medium text-gray-700 border-r border-gray-200 last:border-r-0 bg-gradient-to-b from-gray-50 to-white">
@@ -214,12 +222,12 @@ const CalendarView = ({ view, selectedDate, tasks, onTaskEdit, onDateChange, onT
             return (
               <div
                 key={index}
-                className={`min-h-28 p-3 border-r border-b border-gray-200 last:border-r-0 cursor-pointer hover:bg-gray-50 transition-colors ${
+                className={`min-h-28 p-3 border-r border-b border-gray-200 last:border-r-0 cursor-pointer hover:bg-gray-50 transition-all duration-300 hover:scale-[1.02] ${
                   !isCurrentMonth ? 'bg-gray-50 text-gray-400' : ''
                 }`}
-                onClick={() => onDateChange(day)}
+                onClick={() => handleDateClick(day)}
               >
-                <div className={`text-sm mb-2 ${
+                <div className={`text-sm mb-2 transition-all duration-300 hover:scale-110 ${
                   isToday ? 'bg-gray-900 text-white w-6 h-6 rounded-full flex items-center justify-center font-medium' : 
                   isCurrentMonth ? 'text-gray-900' : 'text-gray-400'
                 }`}>
@@ -229,7 +237,7 @@ const CalendarView = ({ view, selectedDate, tasks, onTaskEdit, onDateChange, onT
                   {dayTasks.slice(0, 2).map(task => (
                     <div
                       key={task.id}
-                      className={`${task.color} p-1 rounded text-xs truncate border border-gray-200 hover:shadow-sm transition-all duration-200 glass-effect ${
+                      className={`${task.color} p-1 rounded text-xs truncate border border-gray-200 hover:shadow-sm transition-all duration-300 glass-3d hover:scale-[1.02] ${
                         task.completed ? 'opacity-60' : ''
                       }`}
                       onClick={(e) => {

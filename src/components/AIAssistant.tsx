@@ -11,7 +11,7 @@ const AIAssistant = ({ onAddTask, tasks }: AIAssistantProps) => {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: '1',
-      content: 'Hello! I\'m your AI assistant. I can help you create tasks, manage your schedule, and resolve conflicts. Try saying "Create a meeting tomorrow at 7pm" or "Create workout on Friday at 6am".',
+      content: 'Hello! I\'m your AI assistant. I can help you create tasks, manage your schedule, and resolve conflicts. Try saying "Create a meeting tomorrow at 7pm", "Schedule workout on Monday at 6am", or "Add meeting on 15th June 2025 at 3pm".',
       isUser: false,
       timestamp: new Date()
     }
@@ -30,26 +30,55 @@ const AIAssistant = ({ onAddTask, tasks }: AIAssistantProps) => {
     const today = new Date();
     const lowerMessage = message.toLowerCase();
     
-    // Check for specific dates (MM/DD/YYYY, DD/MM/YYYY, YYYY-MM-DD)
+    // Check for specific dates with various formats
     const specificDatePatterns = [
-      /(\d{1,2})\/(\d{1,2})\/(\d{4})/,
-      /(\d{4})-(\d{1,2})-(\d{1,2})/,
-      /(\d{1,2})-(\d{1,2})-(\d{4})/,
+      /(\d{1,2})\/(\d{1,2})\/(\d{4})/,                    // MM/DD/YYYY
+      /(\d{4})-(\d{1,2})-(\d{1,2})/,                      // YYYY-MM-DD
+      /(\d{1,2})-(\d{1,2})-(\d{4})/,                      // DD-MM-YYYY
+      /(\d{1,2})(?:st|nd|rd|th)?\s+(\w+)\s+(\d{4})/i,    // 15th June 2025
+      /(\w+)\s+(\d{1,2})(?:st|nd|rd|th)?,?\s+(\d{4})/i,  // June 15th, 2025
     ];
     
     for (const pattern of specificDatePatterns) {
       const match = message.match(pattern);
       if (match) {
         let year, month, day;
-        if (pattern.source.includes('(\\d{4})')) {
+        
+        if (pattern.source.includes('(\\d{4})') && pattern.source.includes('(\\w+)')) {
+          // Handle formats like "15th June 2025" or "June 15th, 2025"
+          const monthNames = ['january', 'february', 'march', 'april', 'may', 'june', 
+                             'july', 'august', 'september', 'october', 'november', 'december'];
+          
+          if (pattern.source.includes('(\\d{1,2})(?:st|nd|rd|th)?\\s+(\\w+)')) {
+            // "15th June 2025"
+            day = parseInt(match[1]);
+            const monthName = match[2].toLowerCase();
+            month = monthNames.indexOf(monthName);
+            year = parseInt(match[3]);
+          } else {
+            // "June 15th, 2025"
+            const monthName = match[1].toLowerCase();
+            month = monthNames.indexOf(monthName);
+            day = parseInt(match[2]);
+            year = parseInt(match[3]);
+          }
+          
+          if (month !== -1) {
+            const parsedDate = new Date(year, month, day);
+            return parsedDate.toISOString().split('T')[0];
+          }
+        } else if (pattern.source.includes('(\\d{4})')) {
+          // Handle YYYY-MM-DD format
           year = parseInt(match[1]);
           month = parseInt(match[2]) - 1;
           day = parseInt(match[3]);
         } else {
+          // Handle MM/DD/YYYY or DD/MM/YYYY
           month = parseInt(match[1]) - 1;
           day = parseInt(match[2]);
           year = match[3] ? parseInt(match[3]) : today.getFullYear();
         }
+        
         const parsedDate = new Date(year, month, day);
         return parsedDate.toISOString().split('T')[0];
       }
@@ -64,23 +93,17 @@ const AIAssistant = ({ onAddTask, tasks }: AIAssistantProps) => {
         const targetDay = new Date(today);
         let daysUntilTarget = (i - currentDay + 7) % 7;
         
-        // If it's the same day, check for "coming", "this", or "next"
-        if (daysUntilTarget === 0) {
-          if (lowerMessage.includes('coming') || lowerMessage.includes('this') || lowerMessage.includes('next')) {
-            daysUntilTarget = 7; // Next week
-          } else {
-            daysUntilTarget = 0; // Today
-          }
-        }
-        
-        // Handle "coming [day]" - should be next occurrence
+        // Handle "coming [day]" - should be next occurrence of that day
         if (lowerMessage.includes('coming')) {
-          if (daysUntilTarget === 0) daysUntilTarget = 7;
-        }
-        
-        // Handle "next [day]"
-        if (lowerMessage.includes('next')) {
+          if (daysUntilTarget === 0) {
+            daysUntilTarget = 7; // Next week if it's the same day
+          }
+        } else if (lowerMessage.includes('next')) {
+          // "next [day]" means the following week
           daysUntilTarget = daysUntilTarget === 0 ? 7 : daysUntilTarget + 7;
+        } else if (daysUntilTarget === 0) {
+          // If no modifier and it's the same day, assume they mean today
+          daysUntilTarget = 0;
         }
         
         targetDay.setDate(today.getDate() + daysUntilTarget);
@@ -105,6 +128,7 @@ const AIAssistant = ({ onAddTask, tasks }: AIAssistantProps) => {
       return nextWeek.toISOString().split('T')[0];
     }
     
+    // Handle "in X days/weeks"
     const relativeMatch = lowerMessage.match(/in (\d+) days?/);
     if (relativeMatch) {
       const daysToAdd = parseInt(relativeMatch[1]);
@@ -127,7 +151,9 @@ const AIAssistant = ({ onAddTask, tasks }: AIAssistantProps) => {
   const parseTaskFromMessage = (message: string): Omit<Task, 'id'> | null => {
     const lowerMessage = message.toLowerCase();
     
-    if (lowerMessage.includes('create') || lowerMessage.includes('add') || lowerMessage.includes('schedule') || lowerMessage.includes('book') || lowerMessage.includes('plan')) {
+    if (lowerMessage.includes('create') || lowerMessage.includes('add') || lowerMessage.includes('schedule') || 
+        lowerMessage.includes('book') || lowerMessage.includes('plan') || lowerMessage.includes('set up')) {
+      
       // Enhanced time parsing
       const timePatterns = [
         /(\d{1,2}):(\d{2})\s*(am|pm)/i,        // 10:30 am
@@ -383,7 +409,7 @@ Please respond with 1, 2, or 3.`;
             response = `Perfect! I've created "${newTask.title}" for ${new Date(newTask.date).toLocaleDateString()} from ${newTask.startTime} to ${newTask.endTime}. The task has been added to your calendar.`;
           }
         } else {
-          response = 'I\'d be happy to help you create a task! Please provide more details like the task name, date, and time. For example: "Create a team meeting tomorrow at 2pm", "Schedule workout on Friday at 6am", or "Add dentist appointment on 12/25 at 3pm"';
+          response = 'I\'d be happy to help you create a task! Please provide more details like the task name, date, and time. For example: "Create a team meeting tomorrow at 2pm", "Schedule workout on Friday at 6am", "Add dentist appointment on 15th June 2025 at 3pm", or "Book meeting coming Monday at 10am"';
         }
       } else if (lowerInput.includes('today') && (lowerInput.includes('task') || lowerInput.includes('schedule'))) {
         const today = new Date().toISOString().split('T')[0];
@@ -400,14 +426,14 @@ Please respond with 1, 2, or 3.`;
         response = `I can help you with:
 
 • Creating tasks: "Create a meeting tomorrow at 3pm", "Schedule workout on Friday at 6am"
-• Specific dates: "Add doctor appointment on 12/25 at 2pm", "Book lunch on Monday at 1pm"
+• Specific dates: "Add doctor appointment on 15th June 2025 at 2pm", "Book lunch coming Monday at 1pm"
 • Various time formats: "Plan review session at 2:30pm", "Set up call at 14:00"
 • Checking your schedule: "Show me my tasks for today"
 • Managing conflicts: I'll automatically detect and suggest solutions
 
 What would you like me to help you with?`;
       } else {
-        response = 'I understand you want to manage your tasks and schedule. You can ask me to create tasks with specific dates and times, check your schedule, or help resolve conflicts. Try saying something like:\n\n• "Create a workout session on Friday at 6am"\n• "Schedule meeting tomorrow at 2:30pm"\n• "Add doctor appointment on 12/25 at 3pm"\n• "Show me my tasks for today"';
+        response = 'I understand you want to manage your tasks and schedule. You can ask me to create tasks with specific dates and times, check your schedule, or help resolve conflicts. Try saying something like:\n\n• "Create a workout session on Friday at 6am"\n• "Schedule meeting tomorrow at 2:30pm"\n• "Add doctor appointment on 15th June 2025 at 3pm"\n• "Book meeting coming Monday at 10am"\n• "Show me my tasks for today"';
       }
 
       const aiMessage: ChatMessage = {
@@ -430,7 +456,7 @@ What would you like me to help you with?`;
   };
 
   return (
-    <div className="flex-1 flex flex-col">
+    <div className="flex-1 flex flex-col animate-fade-in">
       <div className="glass-3d border-b border-gray-800/20 p-4 shadow-lg">
         <h2 className="text-lg font-medium text-gray-900">AI Assistant</h2>
         <p className="text-xs text-gray-600 mt-1">Ask me to create tasks, manage your schedule, or resolve conflicts</p>
@@ -440,10 +466,10 @@ What would you like me to help you with?`;
         {messages.map((message) => (
           <div
             key={message.id}
-            className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
+            className={`flex ${message.isUser ? 'justify-end' : 'justify-start'} animate-fade-in`}
           >
             <div className={`flex max-w-2xl ${message.isUser ? 'flex-row-reverse' : 'flex-row'} gap-2`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 glass-3d ${
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 glass-3d transition-all duration-300 hover:scale-110 ${
                 message.isUser 
                   ? 'bg-gray-900 text-white' 
                   : 'bg-gray-100 text-gray-900'
@@ -454,7 +480,7 @@ What would you like me to help you with?`;
                   <Bot className="w-4 h-4" />
                 )}
               </div>
-              <div className={`rounded-xl p-3 glass-3d max-w-md ${
+              <div className={`rounded-xl p-3 glass-3d max-w-md transition-all duration-300 hover:scale-[1.02] ${
                 message.isUser 
                   ? 'bg-gray-900 text-white' 
                   : 'bg-white text-gray-900'
@@ -472,7 +498,7 @@ What would you like me to help you with?`;
         ))}
         
         {isLoading && (
-          <div className="flex justify-start">
+          <div className="flex justify-start animate-fade-in">
             <div className="flex gap-2 max-w-2xl">
               <div className="w-8 h-8 rounded-full bg-gray-100 text-gray-900 flex items-center justify-center flex-shrink-0 glass-3d">
                 <Bot className="w-4 h-4" />
@@ -498,13 +524,13 @@ What would you like me to help you with?`;
             onChange={(e) => setInputMessage(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder={conflictingSuggestion ? "Please respond with 1, 2, or 3..." : "Type your message... (e.g., 'Create a meeting coming Wednesday at 7pm')"}
-            className="flex-1 px-4 py-3 border border-gray-800/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-400 glass-3d text-sm"
+            className="flex-1 px-4 py-3 border border-gray-800/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-400 glass-3d text-sm transition-all duration-300 focus:scale-[1.02]"
             disabled={isLoading}
           />
           <button
             onClick={handleSendMessage}
             disabled={isLoading || !inputMessage.trim()}
-            className="px-4 py-3 bg-gray-900 text-white rounded-xl hover:bg-gray-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed glass-3d"
+            className="px-4 py-3 bg-gray-900 text-white rounded-xl hover:bg-gray-800 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed glass-3d hover:scale-105"
           >
             <Send className="w-4 h-4" />
           </button>
