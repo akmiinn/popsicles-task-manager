@@ -37,7 +37,7 @@ const Index = () => {
     }
   }, []);
 
-  // Sample tasks for demonstration
+  // Sample tasks for demonstration with pastel colors
   useEffect(() => {
     const sampleTasks: Task[] = [
       {
@@ -48,7 +48,7 @@ const Index = () => {
         endTime: '08:30',
         date: new Date().toISOString().split('T')[0],
         priority: 'high',
-        color: 'bg-pink-200',
+        color: 'task-pastel-pink',
         completed: false
       },
       {
@@ -59,7 +59,7 @@ const Index = () => {
         endTime: '11:00',
         date: new Date().toISOString().split('T')[0],
         priority: 'medium',
-        color: 'bg-blue-200',
+        color: 'task-pastel-blue',
         completed: false
       },
       {
@@ -70,7 +70,7 @@ const Index = () => {
         endTime: '13:00',
         date: new Date().toISOString().split('T')[0],
         priority: 'low',
-        color: 'bg-green-200',
+        color: 'task-pastel-green',
         completed: true
       }
     ];
@@ -165,8 +165,8 @@ const Index = () => {
                     onClick={() => setCurrentView(view)}
                     className={`px-4 py-2 rounded-lg transition-all duration-300 capitalize text-sm hover:scale-105 ${
                       currentView === view
-                        ? 'bg-gray-900 text-white shadow-lg'
-                        : 'glossy-button-3d text-gray-700'
+                        ? 'glossy-button-dark'
+                        : 'glossy-button-3d'
                     }`}
                   >
                     {view}
@@ -231,7 +231,7 @@ const Index = () => {
               {currentPage === 'calendar' && (
                 <button
                   onClick={() => setShowTaskOverlay(true)}
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-all duration-300 shadow-lg text-sm hover:scale-105 glossy-button-3d"
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 shadow-lg text-sm hover:scale-105 glossy-button-dark"
                 >
                   <Plus className="w-4 h-4" />
                   Add Task

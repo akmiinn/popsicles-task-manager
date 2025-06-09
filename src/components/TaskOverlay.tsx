@@ -26,7 +26,7 @@ const TaskOverlay = ({ isOpen, onClose, onSave, editingTask, selectedDate }: Tas
     endTime: '',
     date: selectedDate.toISOString().split('T')[0],
     priority: 'medium' as 'low' | 'medium' | 'high',
-    color: 'bg-blue-100',
+    color: 'task-pastel-blue',
     completed: false
   });
 
@@ -55,7 +55,7 @@ const TaskOverlay = ({ isOpen, onClose, onSave, editingTask, selectedDate }: Tas
         endTime: defaultEnd,
         date: selectedDate.toISOString().split('T')[0],
         priority: 'medium',
-        color: 'bg-blue-100',
+        color: 'task-pastel-blue',
         completed: false
       });
     }
@@ -71,14 +71,14 @@ const TaskOverlay = ({ isOpen, onClose, onSave, editingTask, selectedDate }: Tas
   };
 
   const colorOptions = [
-    { value: 'bg-pink-100', label: 'Pink', preview: 'bg-pink-100' },
-    { value: 'bg-blue-100', label: 'Blue', preview: 'bg-blue-100' },
-    { value: 'bg-green-100', label: 'Green', preview: 'bg-green-100' },
-    { value: 'bg-yellow-100', label: 'Yellow', preview: 'bg-yellow-100' },
-    { value: 'bg-purple-100', label: 'Purple', preview: 'bg-purple-100' },
-    { value: 'bg-orange-100', label: 'Orange', preview: 'bg-orange-100' },
-    { value: 'bg-indigo-100', label: 'Indigo', preview: 'bg-indigo-100' },
-    { value: 'bg-teal-100', label: 'Teal', preview: 'bg-teal-100' },
+    { value: 'task-pastel-pink', label: 'Pink', preview: 'task-pastel-pink' },
+    { value: 'task-pastel-blue', label: 'Blue', preview: 'task-pastel-blue' },
+    { value: 'task-pastel-green', label: 'Green', preview: 'task-pastel-green' },
+    { value: 'task-pastel-yellow', label: 'Yellow', preview: 'task-pastel-yellow' },
+    { value: 'task-pastel-purple', label: 'Purple', preview: 'task-pastel-purple' },
+    { value: 'task-pastel-orange', label: 'Orange', preview: 'task-pastel-orange' },
+    { value: 'task-pastel-indigo', label: 'Indigo', preview: 'task-pastel-indigo' },
+    { value: 'task-pastel-teal', label: 'Teal', preview: 'task-pastel-teal' },
   ];
 
   if (!isOpen) return null;
@@ -230,7 +230,7 @@ const TaskOverlay = ({ isOpen, onClose, onSave, editingTask, selectedDate }: Tas
             </button>
             <button
               type="submit"
-              className="flex-1 px-6 py-3 bg-gray-900 text-white rounded-xl hover:bg-gray-800 transition-all duration-300 shadow-lg hover:shadow-xl text-sm font-medium hover:scale-[1.02] glossy-button-3d"
+              className="flex-1 px-6 py-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl text-sm font-medium hover:scale-[1.02] glossy-button-dark"
             >
               {editingTask ? 'Update' : 'Create'}
             </button>

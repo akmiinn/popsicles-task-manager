@@ -162,6 +162,7 @@
     inset 0 -1px 0 rgba(0, 0, 0, 0.05);
   position: relative;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  color: #374151; /* Ensure dark text on light buttons */
 }
 
 .glossy-button-3d:hover {
@@ -171,6 +172,7 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.95),
     inset 0 -1px 0 rgba(0, 0, 0, 0.08);
   transform: translateY(-1px);
+  color: #374151; /* Maintain dark text on hover */
 }
 
 .glossy-button-3d:active {
@@ -179,6 +181,28 @@
     0 2px 8px rgba(0, 0, 0, 0.15),
     inset 0 1px 0 rgba(255, 255, 255, 0.8),
     inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+}
+
+/* Dark button for primary actions */
+.glossy-button-dark {
+  background: linear-gradient(145deg, #1f2937, #111827);
+  color: white !important;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glossy-button-dark:hover {
+  background: linear-gradient(145deg, #374151, #1f2937);
+  color: white !important;
+  transform: translateY(-1px);
+  box-shadow: 
+    0 6px 20px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.4);
 }
 
 /* Smooth animations */
@@ -302,6 +326,39 @@
 
 .task-3d:hover::before {
   opacity: 0.8;
+}
+
+/* Pastel task colors */
+.task-pastel-pink {
+  background: linear-gradient(145deg, #fce7f3, #fbcfe8);
+}
+
+.task-pastel-blue {
+  background: linear-gradient(145deg, #dbeafe, #bfdbfe);
+}
+
+.task-pastel-green {
+  background: linear-gradient(145deg, #d1fae5, #a7f3d0);
+}
+
+.task-pastel-yellow {
+  background: linear-gradient(145deg, #fef3c7, #fde68a);
+}
+
+.task-pastel-purple {
+  background: linear-gradient(145deg, #e9d5ff, #ddd6fe);
+}
+
+.task-pastel-orange {
+  background: linear-gradient(145deg, #fed7aa, #fdba74);
+}
+
+.task-pastel-indigo {
+  background: linear-gradient(145deg, #e0e7ff, #c7d2fe);
+}
+
+.task-pastel-teal {
+  background: linear-gradient(145deg, #ccfbf1, #99f6e4);
 }
 
 /* Enhanced focus states */
