@@ -1,21 +1,24 @@
-import { useState, useEffect } from 'react';
-import { Calendar, Search, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
+
+import { useState } from 'react';
+import { Calendar, Search, Plus, ChevronLeft, ChevronRight, LogOut } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import TaskOverlay from '../components/TaskOverlay';
 import CalendarView from '../components/CalendarView';
 import TaskList from '../components/TaskList';
 import Profile from '../components/Profile';
 import AIAssistant from '../components/AIAssistant';
-import { Task, CalendarViewType, UserProfile } from '../types';
+import { CalendarViewType, UserProfile } from '../types';
+import { useAuth } from '../hooks/useAuth';
+import { useTasks } from '../hooks/useTasks';
 
 const Index = () => {
   const [currentView, setCurrentView] = useState<CalendarViewType>('daily');
   const [currentPage, setCurrentPage] = useState('calendar');
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [tasks, setTasks] = useState<Task[]>([]);
   const [showTaskOverlay, setShowTaskOverlay] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [editingTask, setEditingTask] = useState(null);
   const [userProfile, setUserProfile] = useState<UserProfile>({
     name: 'John Doe',
     email: 'john.doe@example.com',
@@ -29,94 +32,46 @@ const Index = () => {
     weekStart: 'monday'
   });
 
-  // Load profile from localStorage on component mount
-  useEffect(() => {
-    const savedProfile = localStorage.getItem('userProfile');
-    if (savedProfile) {
-      setUserProfile(JSON.parse(savedProfile));
-    }
-  }, []);
+  const navigate = useNavigate();
+  const { user, loading: authLoading, signOut } = useAuth();
+  const { tasks, loading: tasksLoading, addTask, updateTask, deleteTask, toggleTaskCompletion } = useTasks();
 
-  // Sample tasks for demonstration with pastel colors
-  useEffect(() => {
-    const sampleTasks: Task[] = [
-      {
-        id: '1',
-        title: 'Morning Workout',
-        description: 'Gym session',
-        startTime: '07:00',
-        endTime: '08:30',
-        date: new Date().toISOString().split('T')[0],
-        priority: 'high',
-        color: 'task-pastel-pink',
-        completed: false
-      },
-      {
-        id: '2',
-        title: 'Team Meeting',
-        description: 'Weekly standup',
-        startTime: '10:00',
-        endTime: '11:00',
-        date: new Date().toISOString().split('T')[0],
-        priority: 'medium',
-        color: 'task-pastel-blue',
-        completed: false
-      },
-      {
-        id: '3',
-        title: 'Lunch Break',
-        description: 'Lunch with colleagues',
-        startTime: '12:00',
-        endTime: '13:00',
-        date: new Date().toISOString().split('T')[0],
-        priority: 'low',
-        color: 'task-pastel-green',
-        completed: true
-      }
-    ];
-    setTasks(sampleTasks);
-  }, []);
+  // Redirect to auth if not logged in
+  if (!authLoading && !user) {
+    navigate('/auth');
+    return null;
+  }
 
-  const addTask = (taskData: Omit<Task, 'id'>) => {
-    const newTask: Task = {
-      ...taskData,
-      id: Date.now().toString(),
-      completed: false
-    };
-    setTasks(prev => [...prev, newTask]);
-    setShowTaskOverlay(false);
-  };
+  // Show loading while checking auth
+  if (authLoading || tasksLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
-  const updateTask = (updatedTask: Task) => {
-    setTasks(prev => prev.map(task => task.id === updatedTask.id ? updatedTask : task));
-    setEditingTask(null);
-    setShowTaskOverlay(false);
-  };
-
-  const deleteTask = (taskId: string) => {
-    setTasks(prev => prev.filter(task => task.id !== taskId));
-  };
-
-  const toggleTaskCompletion = (taskId: string) => {
-    setTasks(prev => prev.map(task => 
-      task.id === taskId ? { ...task, completed: !task.completed } : task
-    ));
-  };
-
-  const handleTaskEdit = (task: Task) => {
+  const handleTaskEdit = (task: any) => {
     setEditingTask(task);
     setShowTaskOverlay(true);
   };
 
   const handleProfileUpdate = (updatedProfile: UserProfile) => {
     setUserProfile(updatedProfile);
-    // Save to localStorage
     localStorage.setItem('userProfile', JSON.stringify(updatedProfile));
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/auth');
   };
 
   const filteredTasks = tasks.filter(task =>
     task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    task.description.toLowerCase().includes(searchQuery.toLowerCase())
+    task.description?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const navigateDate = (direction: 'prev' | 'next') => {
@@ -237,6 +192,13 @@ const Index = () => {
                   Add Task
                 </button>
               )}
+              <button
+                onClick={handleSignOut}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 shadow-lg text-sm hover:scale-105 glossy-button-3d text-red-600"
+              >
+                <LogOut className="w-4 h-4" />
+                Sign Out
+              </button>
             </div>
           </div>
         </div>
