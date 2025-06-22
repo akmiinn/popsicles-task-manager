@@ -1,3 +1,4 @@
+
 import { Calendar, Clock, Plus } from 'lucide-react';
 import { Task, CalendarViewType, UserProfile } from '../types';
 import { Calendar as UICalendar } from './ui/calendar';
@@ -20,6 +21,7 @@ const CalendarView = ({
   onTaskEdit, 
   onDateChange,
   onTaskToggle,
+  onViewChange,
   userProfile
 }: CalendarViewProps) => {
   const generateTimeSlots = () => {
@@ -51,14 +53,11 @@ const CalendarView = ({
       <div className="glass-3d rounded-lg p-4 h-[600px] overflow-y-auto">
         <div className="relative">
           {timeSlots.map((slot) => {
-            // Find tasks that span this time slot
             const slotTasks = dayTasks.filter(task => {
               const taskStart = timeToMinutes(task.startTime);
               const taskEnd = timeToMinutes(task.endTime);
               const slotStart = slot.hour * 60;
-              const slotEnd = (slot.hour + 1) * 60;
               
-              // Check if this slot is within the task duration
               return taskStart <= slotStart && taskEnd > slotStart;
             });
 
@@ -80,14 +79,12 @@ const CalendarView = ({
                     const slotStart = slot.hour * 60;
                     const slotEnd = (slot.hour + 1) * 60;
                     
-                    // Calculate the height and position within this slot
                     const taskStartInSlot = Math.max(taskStart, slotStart);
                     const taskEndInSlot = Math.min(taskEnd, slotEnd);
                     const duration = taskEndInSlot - taskStartInSlot;
-                    const height = (duration / 60) * 60; // 60px per hour
+                    const height = Math.max((duration / 60) * 60, 40);
                     const topOffset = ((taskStartInSlot - slotStart) / 60) * 60;
                     
-                    // Only render if there's actual duration in this slot
                     if (duration <= 0) return null;
                     
                     return (
@@ -161,11 +158,10 @@ const CalendarView = ({
     }
 
     return (
-      <div className="glass-3d rounded-lg p-4">
-        <div className="grid grid-cols-8 gap-2 mb-4">
-          <div className="text-sm font-medium text-gray-600"></div>
+      <div className="glass-3d rounded-lg p-4 h-[600px] overflow-y-auto">
+        <div className="grid grid-cols-7 gap-2 mb-4">
           {weekDays.map((day, index) => (
-            <div key={index} className="text-center">
+            <div key={index} className="text-center p-2 border-b border-gray-200">
               <div className="text-sm font-medium text-gray-900">
                 {day.toLocaleDateString('en-US', { weekday: 'short' })}
               </div>
@@ -176,49 +172,27 @@ const CalendarView = ({
           ))}
         </div>
 
-        <div className="grid grid-cols-8 gap-2">
-          <div className="space-y-4">
-            {Array.from({ length: 24 }, (_, hour) => (
-              <div key={hour} className="h-12 text-sm text-gray-600 flex items-center">
-                {userProfile.dateFormat === '12h' 
-                  ? (hour === 0 ? '12 AM' 
-                     : hour < 12 ? `${hour} AM` 
-                     : hour === 12 ? '12 PM' 
-                     : `${hour - 12} PM`)
-                  : `${hour.toString().padStart(2, '0')}:00`
-                }
-              </div>
-            ))}
-          </div>
-          
+        <div className="grid grid-cols-7 gap-2 h-96">
           {weekDays.map((day, dayIndex) => {
             const dayTasks = getTasksForDate(day);
             return (
-              <div key={dayIndex} className="space-y-1">
-                {Array.from({ length: 24 }, (_, hour) => {
-                  const hourTasks = dayTasks.filter(task => {
-                    const taskHour = parseInt(task.startTime.split(':')[0]);
-                    return taskHour === hour;
-                  });
-
-                  return (
-                    <div key={hour} className="h-12 border border-gray-200 rounded relative">
-                      {hourTasks.map((task) => (
-                        <div
-                          key={task.id}
-                          className={`absolute inset-1 ${task.color} p-1 rounded text-xs cursor-pointer task-3d glass-3d ${
-                            task.completed ? 'opacity-60' : ''
-                          }`}
-                          onClick={() => onTaskEdit(task)}
-                        >
-                          <div className={`font-medium truncate ${task.completed ? 'line-through' : ''}`}>
-                            {task.title}
-                          </div>
-                        </div>
-                      ))}
+              <div key={dayIndex} className="border border-gray-200 rounded p-2 space-y-1 overflow-y-auto">
+                {dayTasks.map((task) => (
+                  <div
+                    key={task.id}
+                    className={`${task.color} p-2 rounded text-xs cursor-pointer task-3d glass-3d ${
+                      task.completed ? 'opacity-60' : ''
+                    }`}
+                    onClick={() => onTaskEdit(task)}
+                  >
+                    <div className={`font-medium truncate ${task.completed ? 'line-through' : ''}`}>
+                      {task.title}
                     </div>
-                  );
-                })}
+                    <div className="text-xs text-gray-600">
+                      {task.startTime}
+                    </div>
+                  </div>
+                ))}
               </div>
             );
           })}
@@ -228,55 +202,59 @@ const CalendarView = ({
   };
 
   const renderMonthlyView = () => {
+    const handleDateSelect = (date: Date | undefined) => {
+      if (date) {
+        onDateChange(date);
+        onViewChange('daily');
+      }
+    };
+
     return (
-      <div className="glass-3d rounded-lg p-4">
-        <UICalendar
-          mode="single"
-          selected={selectedDate}
-          onSelect={(date) => date && onDateChange(date)}
-          className="w-full"
-        />
-        
-        <div className="mt-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">
-            Tasks for {selectedDate.toLocaleDateString()}
-          </h3>
-          <div className="space-y-2">
-            {getTasksForDate(selectedDate).map((task) => (
-              <div
-                key={task.id}
-                className={`${task.color} p-3 rounded-lg border border-gray-800/10 cursor-pointer transition-all duration-200 hover:scale-[1.02] task-3d glass-3d ${
-                  task.completed ? 'opacity-60' : ''
-                }`}
-                onClick={() => onTaskEdit(task)}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <h4 className={`font-medium text-sm ${task.completed ? 'line-through text-gray-500' : 'text-gray-800'}`}>
-                      {task.title}
-                    </h4>
-                    <div className="flex items-center gap-1 text-xs text-gray-600 mt-1">
-                      <Clock className="w-3 h-3" />
-                      <span>{task.startTime} - {task.endTime}</span>
+      <div className="glass-3d rounded-lg p-4 h-[600px]">
+        <div className="h-full flex flex-col">
+          <UICalendar
+            mode="single"
+            selected={selectedDate}
+            onSelect={handleDateSelect}
+            className="w-full flex-1"
+            classNames={{
+              months: "flex w-full flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0 flex-1",
+              month: "space-y-4 w-full flex flex-col flex-1",
+              table: "w-full border-collapse space-y-1 flex-1",
+              head_row: "flex",
+              head_cell: "text-muted-foreground rounded-md w-full font-normal text-[0.8rem] flex-1",
+              row: "flex w-full mt-2",
+              cell: "relative p-0 text-center text-sm focus-within:relative focus-within:z-20 [&:has([aria-selected])]:bg-accent [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected].day-range-end)]:rounded-r-md first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md flex-1 h-24",
+              day: "h-full w-full p-0 font-normal aria-selected:opacity-100 hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground rounded-md flex flex-col justify-start items-start"
+            }}
+            components={{
+              DayContent: ({ date }) => {
+                const dayTasks = getTasksForDate(date);
+                return (
+                  <div className="w-full h-full p-1 flex flex-col">
+                    <div className="text-sm font-medium">{date.getDate()}</div>
+                    <div className="flex-1 w-full space-y-1 overflow-hidden">
+                      {dayTasks.slice(0, 2).map((task) => (
+                        <div
+                          key={task.id}
+                          className={`${task.color} text-xs p-1 rounded truncate ${
+                            task.completed ? 'opacity-60' : ''
+                          }`}
+                        >
+                          {task.title}
+                        </div>
+                      ))}
+                      {dayTasks.length > 2 && (
+                        <div className="text-xs text-gray-500">
+                          +{dayTasks.length - 2} more
+                        </div>
+                      )}
                     </div>
                   </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onTaskToggle(task.id);
-                    }}
-                    className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-200 glass-3d ${
-                      task.completed 
-                        ? 'bg-green-500 border-green-500 text-white' 
-                        : 'border-gray-400 hover:border-green-400'
-                    }`}
-                  >
-                    {task.completed && <span className="text-xs">✓</span>}
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+                );
+              }
+            }}
+          />
         </div>
       </div>
     );

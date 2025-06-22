@@ -30,7 +30,19 @@ export const useTasks = () => {
     if (error) {
       console.error('Error fetching tasks:', error);
     } else {
-      setTasks(data || []);
+      // Transform database fields to match Task interface
+      const transformedTasks = data?.map(task => ({
+        id: task.id,
+        title: task.title,
+        description: task.description || '',
+        startTime: task.start_time,
+        endTime: task.end_time,
+        date: task.date,
+        priority: task.priority as 'low' | 'medium' | 'high',
+        color: task.color,
+        completed: task.completed
+      })) || [];
+      setTasks(transformedTasks);
     }
     setLoading(false);
   };
@@ -38,13 +50,22 @@ export const useTasks = () => {
   const addTask = async (taskData: Omit<Task, 'id' | 'completed'>) => {
     if (!user) return;
 
+    // Transform Task interface fields to database fields
+    const dbTaskData = {
+      title: taskData.title,
+      description: taskData.description,
+      start_time: taskData.startTime,
+      end_time: taskData.endTime,
+      date: taskData.date,
+      priority: taskData.priority,
+      color: taskData.color,
+      user_id: user.id,
+      completed: false
+    };
+
     const { data, error } = await supabase
       .from('tasks')
-      .insert([{
-        ...taskData,
-        user_id: user.id,
-        completed: false
-      }])
+      .insert([dbTaskData])
       .select()
       .single();
 
@@ -52,17 +73,40 @@ export const useTasks = () => {
       console.error('Error adding task:', error);
       throw error;
     } else {
-      setTasks(prev => [...prev, data]);
-      return data;
+      // Transform back to Task interface
+      const newTask: Task = {
+        id: data.id,
+        title: data.title,
+        description: data.description || '',
+        startTime: data.start_time,
+        endTime: data.end_time,
+        date: data.date,
+        priority: data.priority as 'low' | 'medium' | 'high',
+        color: data.color,
+        completed: data.completed
+      };
+      setTasks(prev => [...prev, newTask]);
+      return newTask;
     }
   };
 
   const updateTask = async (taskId: string, updates: Partial<Task>) => {
     if (!user) return;
 
+    // Transform updates to database field names
+    const dbUpdates: any = {};
+    if (updates.title !== undefined) dbUpdates.title = updates.title;
+    if (updates.description !== undefined) dbUpdates.description = updates.description;
+    if (updates.startTime !== undefined) dbUpdates.start_time = updates.startTime;
+    if (updates.endTime !== undefined) dbUpdates.end_time = updates.endTime;
+    if (updates.date !== undefined) dbUpdates.date = updates.date;
+    if (updates.priority !== undefined) dbUpdates.priority = updates.priority;
+    if (updates.color !== undefined) dbUpdates.color = updates.color;
+    if (updates.completed !== undefined) dbUpdates.completed = updates.completed;
+
     const { data, error } = await supabase
       .from('tasks')
-      .update(updates)
+      .update(dbUpdates)
       .eq('id', taskId)
       .eq('user_id', user.id)
       .select()
@@ -72,8 +116,20 @@ export const useTasks = () => {
       console.error('Error updating task:', error);
       throw error;
     } else {
-      setTasks(prev => prev.map(task => task.id === taskId ? data : task));
-      return data;
+      // Transform back to Task interface
+      const updatedTask: Task = {
+        id: data.id,
+        title: data.title,
+        description: data.description || '',
+        startTime: data.start_time,
+        endTime: data.end_time,
+        date: data.date,
+        priority: data.priority as 'low' | 'medium' | 'high',
+        color: data.color,
+        completed: data.completed
+      };
+      setTasks(prev => prev.map(task => task.id === taskId ? updatedTask : task));
+      return updatedTask;
     }
   };
 

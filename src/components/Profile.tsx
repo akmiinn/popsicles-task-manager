@@ -1,5 +1,6 @@
+
 import { useState, useEffect } from 'react';
-import { User, Mail, Globe, Bell, Clock, Calendar, Save, Camera, LogIn } from 'lucide-react';
+import { User, Mail, Globe, Bell, Clock, Calendar, Save, Camera, LogOut } from 'lucide-react';
 import { UserProfile } from '../types';
 import {
   Select,
@@ -12,9 +13,10 @@ import {
 interface ProfileProps {
   profile: UserProfile;
   onProfileUpdate: (profile: UserProfile) => void;
+  onSignOut: () => void;
 }
 
-const Profile = ({ profile, onProfileUpdate }: ProfileProps) => {
+const Profile = ({ profile, onProfileUpdate, onSignOut }: ProfileProps) => {
   const [formData, setFormData] = useState<UserProfile>(profile);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -49,21 +51,6 @@ const Profile = ({ profile, onProfileUpdate }: ProfileProps) => {
     }
   };
 
-  const formatTime = (time: string, format: '12h' | '24h') => {
-    if (!time) return time;
-    
-    const [hours, minutes] = time.split(':');
-    const hour = parseInt(hours);
-    
-    if (format === '12h') {
-      const period = hour >= 12 ? 'PM' : 'AM';
-      const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-      return `${displayHour}:${minutes} ${period}`;
-    } else {
-      return time;
-    }
-  };
-
   return (
     <div className="flex-1 p-6 animate-fade-in">
       <div className="max-w-2xl mx-auto">
@@ -93,16 +80,6 @@ const Profile = ({ profile, onProfileUpdate }: ProfileProps) => {
               <h2 className="text-2xl font-light text-gray-900 mb-1">{formData.name}</h2>
               <p className="text-gray-600">{formData.email}</p>
             </div>
-          </div>
-          
-          <div className="border-t border-gray-200 pt-6">
-            <button className="w-full px-6 py-3 bg-white border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-all duration-300 shadow-sm text-sm font-medium flex items-center justify-center gap-2 hover:scale-[1.02] glass-3d">
-              <LogIn className="w-4 h-4" />
-              Connect with Google
-            </button>
-            <p className="text-xs text-gray-500 text-center mt-2">
-              To enable profile photos and Google authentication, please connect to Supabase first.
-            </p>
           </div>
         </div>
 
@@ -258,10 +235,19 @@ const Profile = ({ profile, onProfileUpdate }: ProfileProps) => {
             <button
               onClick={handleSave}
               disabled={isSaving}
-              className="w-full px-6 py-3 bg-gray-900 text-white rounded-xl hover:bg-gray-800 transition-all duration-300 shadow-lg hover:shadow-xl text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-50 hover:scale-[1.02] glossy-button-3d"
+              className="w-full px-6 py-3 bg-gray-900 text-white rounded-xl hover:bg-gray-800 transition-all duration-300 shadow-lg hover:shadow-xl text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-50 hover:scale-[1.02] glossy-button-3d mb-4"
             >
               <Save className="w-4 h-4" />
               {isSaving ? 'Saving...' : 'Save Changes'}
+            </button>
+
+            {/* Sign Out Button */}
+            <button
+              onClick={onSignOut}
+              className="w-full px-6 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-all duration-300 shadow-lg hover:shadow-xl text-sm font-medium flex items-center justify-center gap-2 hover:scale-[1.02] glossy-button-3d"
+            >
+              <LogOut className="w-4 h-4" />
+              Sign Out
             </button>
           </div>
         </div>

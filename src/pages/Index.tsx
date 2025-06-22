@@ -69,6 +69,20 @@ const Index = () => {
     navigate('/auth');
   };
 
+  const handleTaskSave = async (taskData: any) => {
+    try {
+      if (editingTask) {
+        await updateTask(editingTask.id, taskData);
+      } else {
+        await addTask(taskData);
+      }
+      setShowTaskOverlay(false);
+      setEditingTask(null);
+    } catch (error) {
+      console.error('Error saving task:', error);
+    }
+  };
+
   const filteredTasks = tasks.filter(task =>
     task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     task.description?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -151,7 +165,7 @@ const Index = () => {
           />
         );
       case 'profile':
-        return <Profile profile={userProfile} onProfileUpdate={handleProfileUpdate} />;
+        return <Profile profile={userProfile} onProfileUpdate={handleProfileUpdate} onSignOut={handleSignOut} />;
       case 'ai':
         return <AIAssistant onAddTask={addTask} tasks={tasks} />;
       default:
@@ -192,13 +206,6 @@ const Index = () => {
                   Add Task
                 </button>
               )}
-              <button
-                onClick={handleSignOut}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 shadow-lg text-sm hover:scale-105 glossy-button-3d text-red-600"
-              >
-                <LogOut className="w-4 h-4" />
-                Sign Out
-              </button>
             </div>
           </div>
         </div>
@@ -214,7 +221,7 @@ const Index = () => {
             setShowTaskOverlay(false);
             setEditingTask(null);
           }}
-          onSave={editingTask ? updateTask : addTask}
+          onSave={handleTaskSave}
           editingTask={editingTask}
           selectedDate={selectedDate}
         />
