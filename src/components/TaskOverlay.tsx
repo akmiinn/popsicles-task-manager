@@ -91,111 +91,111 @@ const TaskOverlay = ({ isOpen, onClose, onSave, editingTask, selectedDate }: Tas
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
-      <div className="glass-3d rounded-2xl p-6 w-96 max-h-[90vh] overflow-y-auto shadow-2xl border border-white/20 animate-scale-in transform-gpu">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-medium text-gray-900 animate-slide-up">
-            {editingTask ? 'Edit Task' : 'New Task'}
+    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
+      <div className="glass-3d rounded-2xl p-8 w-[480px] max-h-[90vh] overflow-y-auto shadow-2xl border border-white/20 animate-scale-in transform-gpu">
+        <div className="flex items-center justify-between mb-8 animate-slide-in-right">
+          <h3 className="text-2xl font-light text-gray-900">
+            {editingTask ? 'Edit Task' : 'Create New Task'}
           </h3>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100/50 rounded-xl transition-all duration-500 hover:scale-125 transform-gpu hover:rotate-90"
+            className="p-3 hover:bg-gray-100/50 rounded-xl transition-all duration-500 hover:scale-125 transform-gpu hover:rotate-90 glass-3d"
           >
             <X className="w-5 h-5 text-gray-500" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="animate-slide-up" style={{ animationDelay: '0.1s' }}>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Title
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="animate-slide-in-right" style={{ animationDelay: '0.1s' }}>
+            <label className="block text-sm font-semibold text-gray-700 mb-3">
+              Task Title
             </label>
             <input
               type="text"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-300 shadow-sm glass-3d text-sm transition-all duration-500 focus:scale-[1.02] transform-gpu"
-              placeholder="Task title"
+              className="w-full px-4 py-4 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-300 shadow-sm glass-3d text-sm transition-all duration-500 focus:scale-[1.02] transform-gpu"
+              placeholder="Enter task title..."
               required
             />
           </div>
 
-          <div className="animate-slide-up" style={{ animationDelay: '0.2s' }}>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+          <div className="animate-slide-in-right" style={{ animationDelay: '0.2s' }}>
+            <label className="block text-sm font-semibold text-gray-700 mb-3">
               Description
             </label>
             <textarea
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-300 h-20 resize-none shadow-sm glass-3d text-sm transition-all duration-500 focus:scale-[1.02] transform-gpu"
-              placeholder="Optional description"
+              className="w-full px-4 py-4 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-300 h-24 resize-none shadow-sm glass-3d text-sm transition-all duration-500 focus:scale-[1.02] transform-gpu"
+              placeholder="Add a description (optional)..."
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4 animate-slide-up" style={{ animationDelay: '0.3s' }}>
+          <div className="grid grid-cols-2 gap-4 animate-slide-in-right" style={{ animationDelay: '0.3s' }}>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-gray-700 mb-3">
                 Start Time
               </label>
               <input
                 type="time"
                 value={formData.startTime}
                 onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-300 shadow-sm glass-3d text-sm transition-all duration-500 focus:scale-[1.02] transform-gpu"
+                className="w-full px-4 py-4 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-300 shadow-sm glass-3d text-sm transition-all duration-500 focus:scale-[1.02] transform-gpu"
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-gray-700 mb-3">
                 End Time
               </label>
               <input
                 type="time"
                 value={formData.endTime}
                 onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-300 shadow-sm glass-3d text-sm transition-all duration-500 focus:scale-[1.02] transform-gpu"
+                className="w-full px-4 py-4 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-300 shadow-sm glass-3d text-sm transition-all duration-500 focus:scale-[1.02] transform-gpu"
                 required
               />
             </div>
           </div>
 
-          <div className="animate-slide-up" style={{ animationDelay: '0.4s' }}>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+          <div className="animate-slide-in-right" style={{ animationDelay: '0.4s' }}>
+            <label className="block text-sm font-semibold text-gray-700 mb-3">
               Date
             </label>
             <input
               type="date"
               value={formData.date}
               onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-300 shadow-sm glass-3d text-sm transition-all duration-500 focus:scale-[1.02] transform-gpu"
+              className="w-full px-4 py-4 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-300 shadow-sm glass-3d text-sm transition-all duration-500 focus:scale-[1.02] transform-gpu"
               required
             />
           </div>
 
-          <div className="animate-slide-up" style={{ animationDelay: '0.5s' }}>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Priority
+          <div className="animate-slide-in-right" style={{ animationDelay: '0.5s' }}>
+            <label className="block text-sm font-semibold text-gray-700 mb-3">
+              Priority Level
             </label>
             <Select value={formData.priority} onValueChange={(value) => setFormData({ ...formData, priority: value as 'low' | 'medium' | 'high' })}>
-              <SelectTrigger className="w-full glass-3d border border-gray-200/50 rounded-xl px-4 py-3 text-sm transition-all duration-500 hover:scale-[1.02] transform-gpu">
+              <SelectTrigger className="w-full glass-3d border border-gray-200/50 rounded-xl px-4 py-4 text-sm transition-all duration-500 hover:scale-[1.02] transform-gpu">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="glass-3d border border-gray-200/50 rounded-xl shadow-xl animate-scale-in">
-                <SelectItem value="high" className="text-sm transition-all duration-300 hover:scale-105">High Priority</SelectItem>
-                <SelectItem value="medium" className="text-sm transition-all duration-300 hover:scale-105">Medium Priority</SelectItem>
-                <SelectItem value="low" className="text-sm transition-all duration-300 hover:scale-105">Low Priority</SelectItem>
+                <SelectItem value="high" className="text-sm transition-all duration-300 hover:scale-105 text-red-700">🔴 High Priority</SelectItem>
+                <SelectItem value="medium" className="text-sm transition-all duration-300 hover:scale-105 text-orange-700">🟡 Medium Priority</SelectItem>
+                <SelectItem value="low" className="text-sm transition-all duration-300 hover:scale-105 text-green-700">🟢 Low Priority</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
-          <div className="animate-slide-up" style={{ animationDelay: '0.6s' }}>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Color
+          <div className="animate-slide-in-right" style={{ animationDelay: '0.6s' }}>
+            <label className="block text-sm font-semibold text-gray-700 mb-3">
+              Color Theme
             </label>
             <Select value={formData.color} onValueChange={(value) => setFormData({ ...formData, color: value })}>
-              <SelectTrigger className="w-full glass-3d border border-gray-200/50 rounded-xl px-4 py-3 text-sm transition-all duration-500 hover:scale-[1.02] transform-gpu">
+              <SelectTrigger className="w-full glass-3d border border-gray-200/50 rounded-xl px-4 py-4 text-sm transition-all duration-500 hover:scale-[1.02] transform-gpu">
                 <div className="flex items-center gap-3">
-                  <div className={`w-4 h-4 rounded-full ${formData.color} border border-gray-300 animate-pulse`} />
+                  <div className={`w-5 h-5 rounded-full ${formData.color} border-2 border-gray-300 animate-pulse shadow-sm`} />
                   <SelectValue />
                 </div>
               </SelectTrigger>
@@ -203,7 +203,7 @@ const TaskOverlay = ({ isOpen, onClose, onSave, editingTask, selectedDate }: Tas
                 {colorOptions.map((color) => (
                   <SelectItem key={color.value} value={color.value} className="text-sm transition-all duration-300 hover:scale-105">
                     <div className="flex items-center gap-3">
-                      <div className={`w-4 h-4 rounded-full ${color.preview} border border-gray-300`} />
+                      <div className={`w-4 h-4 rounded-full ${color.preview} border border-gray-300 shadow-sm`} />
                       <span>{color.label}</span>
                     </div>
                   </SelectItem>
@@ -213,13 +213,13 @@ const TaskOverlay = ({ isOpen, onClose, onSave, editingTask, selectedDate }: Tas
           </div>
 
           {editingTask && (
-            <div className="flex items-center gap-3 animate-slide-up" style={{ animationDelay: '0.7s' }}>
+            <div className="flex items-center gap-3 animate-slide-in-right" style={{ animationDelay: '0.7s' }}>
               <input
                 type="checkbox"
                 id="completed"
                 checked={formData.completed}
                 onChange={(e) => setFormData({ ...formData, completed: e.target.checked })}
-                className="w-4 h-4 text-gray-600 rounded focus:ring-gray-300 transition-all duration-500 transform hover:scale-125"
+                className="w-5 h-5 text-purple-600 rounded focus:ring-purple-300 transition-all duration-500 transform hover:scale-125"
               />
               <label htmlFor="completed" className="text-sm font-medium text-gray-700">
                 Mark as completed
@@ -227,19 +227,19 @@ const TaskOverlay = ({ isOpen, onClose, onSave, editingTask, selectedDate }: Tas
             </div>
           )}
 
-          <div className="flex gap-3 pt-4 animate-slide-up" style={{ animationDelay: '0.8s' }}>
+          <div className="flex gap-4 pt-6 animate-slide-in-right" style={{ animationDelay: '0.8s' }}>
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-6 py-3 border border-gray-300 text-gray-600 rounded-xl hover:bg-gray-50/50 transition-all duration-500 shadow-sm text-sm font-medium hover:scale-[1.02] transform-gpu glass-3d"
+              className="flex-1 px-6 py-4 border border-gray-300 text-gray-600 rounded-xl hover:bg-gray-50/50 transition-all duration-500 shadow-sm text-sm font-medium hover:scale-[1.02] transform-gpu glass-3d"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex-1 px-6 py-3 rounded-xl transition-all duration-500 shadow-lg hover:shadow-xl text-sm font-medium hover:scale-[1.02] transform-gpu glossy-button-dark text-white"
+              className="flex-1 px-6 py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl hover:from-purple-600 hover:to-pink-600 transition-all duration-500 shadow-lg hover:shadow-xl text-sm font-medium hover:scale-[1.02] transform-gpu"
             >
-              {editingTask ? 'Update' : 'Create'}
+              {editingTask ? 'Update Task' : 'Create Task'}
             </button>
           </div>
         </form>

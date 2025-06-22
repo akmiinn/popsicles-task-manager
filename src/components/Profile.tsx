@@ -1,14 +1,8 @@
 
-import { useState, useEffect } from 'react';
-import { User, Mail, Globe, Bell, Clock, Calendar, Save, Camera, LogOut } from 'lucide-react';
+import { useState } from 'react';
+import { User, Settings, Bell, Globe, Calendar, Clock, LogOut } from 'lucide-react';
 import { UserProfile } from '../types';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from './ui/select';
+import { useAuth } from '../hooks/useAuth';
 
 interface ProfileProps {
   profile: UserProfile;
@@ -17,236 +11,202 @@ interface ProfileProps {
 }
 
 const Profile = ({ profile, onProfileUpdate, onSignOut }: ProfileProps) => {
-  const [formData, setFormData] = useState<UserProfile>(profile);
-  const [isSaving, setIsSaving] = useState(false);
-
-  useEffect(() => {
-    setFormData(profile);
-  }, [profile]);
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [formData, setFormData] = useState(profile);
+  const { user } = useAuth();
 
   const handleSave = () => {
-    setIsSaving(true);
-    setTimeout(() => {
-      onProfileUpdate(formData);
-      setIsSaving(false);
-    }, 500);
+    onProfileUpdate(formData);
+    setEditingProfile(false);
   };
 
-  const handleInputChange = (field: keyof UserProfile, value: string | boolean) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const imageUrl = e.target?.result as string;
-        setFormData(prev => ({ ...prev, avatar: imageUrl }));
-      };
-      reader.readAsDataURL(file);
-    }
+  const handleCancel = () => {
+    setFormData(profile);
+    setEditingProfile(false);
   };
 
   return (
     <div className="flex-1 p-6 animate-fade-in">
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-2xl mx-auto space-y-6">
         {/* Profile Header */}
-        <div className="glass-3d rounded-2xl shadow-xl border border-gray-300 p-8 mb-8 animate-scale-in">
-          <div className="flex items-center gap-6 mb-6">
-            <div className="relative">
-              <div className="w-20 h-20 bg-gradient-to-br from-gray-200 to-gray-300 rounded-2xl flex items-center justify-center shadow-inner overflow-hidden">
-                {formData.avatar ? (
-                  <img src={formData.avatar} alt="Profile" className="w-full h-full object-cover" />
+        <div className="glass-3d rounded-2xl p-8 text-center animate-scale-in">
+          <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl">
+            <User className="w-12 h-12 text-white" />
+          </div>
+          <h2 className="text-2xl font-light text-gray-900 mb-2">{profile.name}</h2>
+          <p className="text-gray-600 mb-4">{user?.email || profile.email}</p>
+          <p className="text-sm text-gray-500 max-w-md mx-auto leading-relaxed">{profile.bio}</p>
+        </div>
+
+        {/* Profile Settings */}
+        <div className="glass-3d rounded-2xl p-6 animate-slide-in-right" style={{ animationDelay: '0.2s' }}>
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <Settings className="w-5 h-5 text-gray-600" />
+              <h3 className="text-lg font-medium text-gray-900">Profile Settings</h3>
+            </div>
+            <button
+              onClick={() => setEditingProfile(!editingProfile)}
+              className="px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-all duration-300 hover:scale-105"
+            >
+              {editingProfile ? 'Cancel' : 'Edit'}
+            </button>
+          </div>
+
+          <div className="space-y-6">
+            {/* Personal Information */}
+            <div className="space-y-4">
+              <h4 className="font-medium text-gray-900 flex items-center gap-2">
+                <User className="w-4 h-4" />
+                Personal Information
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                  {editingProfile ? (
+                    <input
+                      type="text"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300 glass-3d transition-all duration-300 focus:scale-[1.02]"
+                    />
+                  ) : (
+                    <div className="px-4 py-3 bg-gray-50 rounded-lg text-gray-900 glass-3d">{profile.name}</div>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                  <div className="px-4 py-3 bg-gray-50 rounded-lg text-gray-600 glass-3d">{user?.email || profile.email}</div>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Bio</label>
+                {editingProfile ? (
+                  <textarea
+                    value={formData.bio}
+                    onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                    rows={3}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300 resize-none glass-3d transition-all duration-300 focus:scale-[1.02]"
+                  />
                 ) : (
-                  <User className="w-10 h-10 text-gray-600" />
+                  <div className="px-4 py-3 bg-gray-50 rounded-lg text-gray-900 glass-3d min-h-[80px]">{profile.bio}</div>
                 )}
               </div>
-              <label htmlFor="avatar-upload" className="absolute -bottom-2 -right-2 w-8 h-8 bg-gray-900 text-white rounded-full flex items-center justify-center cursor-pointer hover:bg-gray-800 transition-all duration-300 hover:scale-110 glass-3d">
-                <Camera className="w-4 h-4" />
-              </label>
-              <input
-                id="avatar-upload"
-                type="file"
-                accept="image/*"
-                onChange={handleImageUpload}
-                className="hidden"
-              />
             </div>
-            <div>
-              <h2 className="text-2xl font-light text-gray-900 mb-1">{formData.name}</h2>
-              <p className="text-gray-600">{formData.email}</p>
+
+            {/* Preferences */}
+            <div className="space-y-4">
+              <h4 className="font-medium text-gray-900 flex items-center gap-2">
+                <Settings className="w-4 h-4" />
+                Preferences
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                    <Globe className="w-4 h-4" />
+                    Language
+                  </label>
+                  {editingProfile ? (
+                    <select
+                      value={formData.language}
+                      onChange={(e) => setFormData({ ...formData, language: e.target.value })}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300 glass-3d transition-all duration-300 focus:scale-[1.02]"
+                    >
+                      <option value="English">English</option>
+                      <option value="Spanish">Spanish</option>
+                      <option value="French">French</option>
+                      <option value="German">German</option>
+                    </select>
+                  ) : (
+                    <div className="px-4 py-3 bg-gray-50 rounded-lg text-gray-900 glass-3d">{profile.language}</div>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                    <Clock className="w-4 h-4" />
+                    Time Format
+                  </label>
+                  {editingProfile ? (
+                    <select
+                      value={formData.dateFormat}
+                      onChange={(e) => setFormData({ ...formData, dateFormat: e.target.value as '12h' | '24h' })}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300 glass-3d transition-all duration-300 focus:scale-[1.02]"
+                    >
+                      <option value="12h">12 Hour</option>
+                      <option value="24h">24 Hour</option>
+                    </select>
+                  ) : (
+                    <div className="px-4 py-3 bg-gray-50 rounded-lg text-gray-900 glass-3d">{profile.dateFormat === '12h' ? '12 Hour' : '24 Hour'}</div>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                    <Calendar className="w-4 h-4" />
+                    Week Start
+                  </label>
+                  {editingProfile ? (
+                    <select
+                      value={formData.weekStart}
+                      onChange={(e) => setFormData({ ...formData, weekStart: e.target.value as 'sunday' | 'monday' })}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300 glass-3d transition-all duration-300 focus:scale-[1.02]"
+                    >
+                      <option value="sunday">Sunday</option>
+                      <option value="monday">Monday</option>
+                    </select>
+                  ) : (
+                    <div className="px-4 py-3 bg-gray-50 rounded-lg text-gray-900 glass-3d capitalize">{profile.weekStart}</div>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                    <Bell className="w-4 h-4" />
+                    Notifications
+                  </label>
+                  {editingProfile ? (
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={formData.notifications}
+                        onChange={(e) => setFormData({ ...formData, notifications: e.target.checked })}
+                        className="w-4 h-4 text-blue-600 rounded focus:ring-blue-300 transition-all duration-300"
+                      />
+                      <span className="ml-3 text-sm text-gray-700">Enable notifications</span>
+                    </div>
+                  ) : (
+                    <div className="px-4 py-3 bg-gray-50 rounded-lg text-gray-900 glass-3d">{profile.notifications ? 'Enabled' : 'Disabled'}</div>
+                  )}
+                </div>
+              </div>
             </div>
+
+            {editingProfile && (
+              <div className="flex gap-3 pt-4 animate-slide-in-right">
+                <button
+                  onClick={handleCancel}
+                  className="flex-1 px-6 py-3 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition-all duration-300 text-sm font-medium hover:scale-[1.02] glass-3d"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSave}
+                  className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl text-sm font-medium hover:scale-[1.02]"
+                >
+                  Save Changes
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Profile Form */}
-        <div className="glass-3d rounded-2xl shadow-xl border border-gray-300 p-8 animate-slide-up">
-          <h3 className="text-xl font-light text-gray-900 mb-6">Profile Settings</h3>
-          
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <User className="w-4 h-4 inline mr-2" />
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => handleInputChange('name', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-300 shadow-sm glass-3d text-sm transition-all duration-300 focus:scale-[1.02]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <Mail className="w-4 h-4 inline mr-2" />
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => handleInputChange('email', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-300 shadow-sm glass-3d text-sm transition-all duration-300 focus:scale-[1.02]"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Bio
-              </label>
-              <textarea
-                value={formData.bio}
-                onChange={(e) => handleInputChange('bio', e.target.value)}
-                className="w-full px-4 py-3 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-300 h-24 resize-none shadow-sm glass-3d text-sm transition-all duration-300 focus:scale-[1.02]"
-                placeholder="Tell us about yourself..."
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <Globe className="w-4 h-4 inline mr-2" />
-                  Timezone
-                </label>
-                <Select value={formData.timezone} onValueChange={(value) => handleInputChange('timezone', value)}>
-                  <SelectTrigger className="glass-3d border border-gray-200/50 rounded-xl px-4 py-3 text-sm transition-all duration-300 hover:scale-[1.02]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="glass-3d border border-gray-200/50 rounded-xl shadow-xl">
-                    <SelectItem value="America/New_York">Eastern Time</SelectItem>
-                    <SelectItem value="America/Chicago">Central Time</SelectItem>
-                    <SelectItem value="America/Denver">Mountain Time</SelectItem>
-                    <SelectItem value="America/Los_Angeles">Pacific Time</SelectItem>
-                    <SelectItem value="Europe/London">London Time</SelectItem>
-                    <SelectItem value="Europe/Paris">Paris Time</SelectItem>
-                    <SelectItem value="Asia/Tokyo">Tokyo Time</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Language
-                </label>
-                <Select value={formData.language} onValueChange={(value) => handleInputChange('language', value)}>
-                  <SelectTrigger className="glass-3d border border-gray-200/50 rounded-xl px-4 py-3 text-sm transition-all duration-300 hover:scale-[1.02]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="glass-3d border border-gray-200/50 rounded-xl shadow-xl">
-                    <SelectItem value="English">English</SelectItem>
-                    <SelectItem value="Spanish">Spanish</SelectItem>
-                    <SelectItem value="French">French</SelectItem>
-                    <SelectItem value="German">German</SelectItem>
-                    <SelectItem value="Japanese">Japanese</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <Clock className="w-4 h-4 inline mr-2" />
-                  Time Format
-                </label>
-                <Select value={formData.dateFormat} onValueChange={(value) => handleInputChange('dateFormat', value as '12h' | '24h')}>
-                  <SelectTrigger className="glass-3d border border-gray-200/50 rounded-xl px-4 py-3 text-sm transition-all duration-300 hover:scale-[1.02]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="glass-3d border border-gray-200/50 rounded-xl shadow-xl">
-                    <SelectItem value="12h">12 Hour (AM/PM)</SelectItem>
-                    <SelectItem value="24h">24 Hour</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <Calendar className="w-4 h-4 inline mr-2" />
-                  Week Starts On
-                </label>
-                <Select value={formData.weekStart} onValueChange={(value) => handleInputChange('weekStart', value as 'sunday' | 'monday')}>
-                  <SelectTrigger className="glass-3d border border-gray-200/50 rounded-xl px-4 py-3 text-sm transition-all duration-300 hover:scale-[1.02]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="glass-3d border border-gray-200/50 rounded-xl shadow-xl">
-                    <SelectItem value="sunday">Sunday</SelectItem>
-                    <SelectItem value="monday">Monday</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Theme Preference
-              </label>
-              <Select value={formData.theme} onValueChange={(value) => handleInputChange('theme', value as 'light' | 'dark')}>
-                <SelectTrigger className="glass-3d border border-gray-200/50 rounded-xl px-4 py-3 text-sm transition-all duration-300 hover:scale-[1.02]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="glass-3d border border-gray-200/50 rounded-xl shadow-xl">
-                  <SelectItem value="light">Light Theme</SelectItem>
-                  <SelectItem value="dark">Dark Theme</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <input
-                type="checkbox"
-                id="notifications"
-                checked={formData.notifications}
-                onChange={(e) => handleInputChange('notifications', e.target.checked)}
-                className="w-4 h-4 text-gray-600 rounded focus:ring-gray-300 transition-all duration-300"
-              />
-              <label htmlFor="notifications" className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                <Bell className="w-4 h-4" />
-                Enable Notifications
-              </label>
-            </div>
-
-            <button
-              onClick={handleSave}
-              disabled={isSaving}
-              className="w-full px-6 py-3 bg-gray-900 text-white rounded-xl hover:bg-gray-800 transition-all duration-300 shadow-lg hover:shadow-xl text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-50 hover:scale-[1.02] glossy-button-3d mb-4"
-            >
-              <Save className="w-4 h-4" />
-              {isSaving ? 'Saving...' : 'Save Changes'}
-            </button>
-
-            {/* Sign Out Button */}
+        {/* Sign Out Section */}
+        <div className="glass-3d rounded-2xl p-6 animate-slide-in-right" style={{ animationDelay: '0.4s' }}>
+          <div className="text-center">
+            <h4 className="font-medium text-gray-900 mb-4">Account Actions</h4>
             <button
               onClick={onSignOut}
-              className="w-full px-6 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-all duration-300 shadow-lg hover:shadow-xl text-sm font-medium flex items-center justify-center gap-2 hover:scale-[1.02] glossy-button-3d"
+              className="flex items-center justify-center gap-3 w-full px-6 py-4 bg-gradient-to-r from-red-500 to-pink-600 text-white rounded-lg hover:from-red-600 hover:to-pink-700 transition-all duration-300 shadow-lg hover:shadow-xl font-medium hover:scale-[1.02]"
             >
-              <LogOut className="w-4 h-4" />
+              <LogOut className="w-5 h-5" />
               Sign Out
             </button>
           </div>
