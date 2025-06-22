@@ -1,4 +1,3 @@
-
 import { Task, CalendarViewType, UserProfile } from '../types';
 import { Edit2, Check } from 'lucide-react';
 
@@ -100,37 +99,27 @@ const CalendarView = ({ view, selectedDate, tasks, onTaskEdit, onDateChange, onT
                    `${hour - 12} PM`);
 
               return (
-                <div key={hour} className="flex border-b border-gray-100 py-4 relative min-h-[60px] animate-fade-in" style={{ animationDelay: `${hour * 0.02}s` }}>
+                <div key={hour} className="flex border-b border-gray-100 py-4 relative min-h-[80px]" style={{ animationDelay: `${hour * 0.02}s` }}>
                   <div className="w-20 text-sm text-gray-600 flex-shrink-0 font-medium">
                     {displayTime}
                   </div>
                   <div className="flex-1 ml-6 relative">
-                    {/* Render tasks that span this hour */}
+                    {/* Render tasks that start in this hour */}
                     {dayTasks.map(task => {
                       const taskStartMinutes = timeToMinutes(task.startTime);
                       const taskEndMinutes = timeToMinutes(task.endTime);
                       const hourStartMinutes = hour * 60;
                       const hourEndMinutes = (hour + 1) * 60;
 
-                      // Check if task overlaps with this hour
-                      const overlaps = taskStartMinutes < hourEndMinutes && taskEndMinutes > hourStartMinutes;
-                      
-                      if (!overlaps) return null;
-
-                      // Calculate position and height
-                      const taskStart = Math.max(taskStartMinutes, hourStartMinutes);
-                      const taskEnd = Math.min(taskEndMinutes, hourEndMinutes);
-                      const duration = taskEnd - taskStart;
-                      const height = (duration / 60) * 60; // 60px per hour
-                      const top = ((taskStart - hourStartMinutes) / 60) * 60;
-
                       // Only render the task in its starting hour to avoid duplicates
-                      const isStartingHour = taskStartMinutes >= hourStartMinutes && taskStartMinutes < hourEndMinutes;
-                      if (!isStartingHour) return null;
+                      const taskStartHour = Math.floor(taskStartMinutes / 60);
+                      if (taskStartHour !== hour) return null;
 
-                      // Calculate full height for the entire task duration
-                      const fullDuration = taskEndMinutes - taskStartMinutes;
-                      const fullHeight = (fullDuration / 60) * 60;
+                      // Calculate position and height for the entire task duration
+                      const taskDurationMinutes = taskEndMinutes - taskStartMinutes;
+                      const taskHeight = (taskDurationMinutes / 60) * 80; // 80px per hour
+                      const offsetFromHourStart = taskStartMinutes - hourStartMinutes;
+                      const topOffset = (offsetFromHourStart / 60) * 80;
 
                       return (
                         <div
@@ -139,8 +128,8 @@ const CalendarView = ({ view, selectedDate, tasks, onTaskEdit, onDateChange, onT
                             task.completed ? 'opacity-60 task-completed' : ''
                           }`}
                           style={{ 
-                            top: `${top}px`, 
-                            height: `${fullHeight}px`,
+                            top: `${topOffset}px`, 
+                            height: `${Math.max(taskHeight, 60)}px`, // Minimum height of 60px
                             zIndex: 10
                           }}
                           onClick={() => onTaskEdit(task)}
@@ -149,7 +138,7 @@ const CalendarView = ({ view, selectedDate, tasks, onTaskEdit, onDateChange, onT
                             <div className="flex items-start gap-3 flex-1">
                               <button
                                 onClick={(e) => handleTaskToggle(task.id, e)}
-                                className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-500 hover:scale-125 transform-gpu ${
+                                className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-500 hover:scale-125 transform-gpu flex-shrink-0 ${
                                   task.completed 
                                     ? 'bg-green-500 border-green-500 text-white checkbox-checked animate-bounce' 
                                     : 'border-gray-400 hover:border-green-400 hover:bg-green-50'
@@ -157,21 +146,21 @@ const CalendarView = ({ view, selectedDate, tasks, onTaskEdit, onDateChange, onT
                               >
                                 {task.completed && <Check className="w-3 h-3 animate-checkmark-draw" />}
                               </button>
-                              <div className="flex-1">
-                                <h4 className={`font-medium text-sm transition-all duration-300 ${task.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>
+                              <div className="flex-1 min-w-0">
+                                <h4 className={`font-medium text-sm transition-all duration-300 text-gray-900 ${task.completed ? 'line-through text-gray-500' : ''}`}>
                                   {task.title}
                                 </h4>
                                 <p className="text-xs text-gray-600 mt-1">
                                   {formatTime(task.startTime, userProfile?.dateFormat)} - {formatTime(task.endTime, userProfile?.dateFormat)}
                                 </p>
                                 {task.description && (
-                                  <p className={`text-xs mt-1 transition-all duration-300 ${task.completed ? 'text-gray-400' : 'text-gray-500'}`}>
+                                  <p className={`text-xs mt-1 transition-all duration-300 text-gray-600 ${task.completed ? 'text-gray-400' : ''}`}>
                                     {task.description}
                                   </p>
                                 )}
                               </div>
                             </div>
-                            <Edit2 className="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-all duration-500 transform group-hover:scale-110" />
+                            <Edit2 className="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-all duration-500 transform group-hover:scale-110 flex-shrink-0" />
                           </div>
                         </div>
                       );
@@ -244,7 +233,7 @@ const CalendarView = ({ view, selectedDate, tasks, onTaskEdit, onDateChange, onT
                           {task.completed && <Check className="w-2 h-2" />}
                         </button>
                         <div className="flex-1 min-w-0">
-                          <div className={`font-medium truncate ${task.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>
+                          <div className={`font-medium truncate text-gray-900 ${task.completed ? 'line-through text-gray-500' : ''}`}>
                             {task.title}
                           </div>
                           <div className="text-gray-700 truncate">
@@ -331,7 +320,7 @@ const CalendarView = ({ view, selectedDate, tasks, onTaskEdit, onDateChange, onT
                     >
                       <div className="flex items-center gap-1">
                         {task.completed && <Check className="w-2 h-2 text-green-600 animate-bounce" />}
-                        <span className={`font-medium truncate ${task.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>
+                        <span className={`font-medium truncate text-gray-900 ${task.completed ? 'line-through text-gray-500' : ''}`}>
                           {task.title}
                         </span>
                       </div>
