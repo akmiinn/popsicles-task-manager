@@ -1,13 +1,24 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '../integrations/supabase/client';
-import { UserProfile } from '../types';
 import { useAuth } from './useAuth';
 
+export interface Profile {
+  id: string;
+  email: string | null;
+  full_name: string | null;
+  bio: string | null;
+  language: string | null;
+  date_format: string | null;
+  week_start: string | null;
+  notifications: boolean | null;
+  created_at: string | null;
+  updated_at: string | null;
+}
+
 export const useProfile = () => {
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (user) {
@@ -21,69 +32,81 @@ export const useProfile = () => {
   const fetchProfile = async () => {
     if (!user) return;
 
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
 
-    if (error) {
+      if (error) {
+        console.error('Error fetching profile:', error);
+        // Create default profile if it doesn't exist
+        if (error.code === 'PGRST116') {
+          await createDefaultProfile();
+        }
+      } else {
+        setProfile(data);
+      }
+    } catch (error) {
       console.error('Error fetching profile:', error);
-      // Create default profile if none exists
-      const defaultProfile: UserProfile = {
-        name: data?.full_name || user.email || 'User',
-        email: user.email || '',
-        avatar: '',
-        bio: 'Welcome to Popsicles!',
-        timezone: 'America/New_York',
-        theme: 'light',
-        notifications: true,
-        language: 'English',
-        dateFormat: '12h',
-        weekStart: 'monday'
-      };
-      setProfile(defaultProfile);
-    } else {
-      // Transform database data to UserProfile format
-      const userProfile: UserProfile = {
-        name: data.full_name || user.email || 'User',
-        email: data.email || user.email || '',
-        avatar: '',
-        bio: data.bio || 'Welcome to Popsicles!',
-        timezone: 'America/New_York',
-        theme: 'light',
-        notifications: data.notifications ?? true,
-        language: data.language || 'English',
-        dateFormat: (data.date_format as '12h' | '24h') || '12h',
-        weekStart: (data.week_start as 'sunday' | 'monday') || 'monday'
-      };
-      setProfile(userProfile);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
-  const updateProfile = async (updates: Partial<UserProfile>) => {
-    if (!user || !profile) return;
+  const createDefaultProfile = async () => {
+    if (!user) return;
 
-    // Transform UserProfile updates to database format
-    const dbUpdates: any = {};
-    if (updates.name !== undefined) dbUpdates.full_name = updates.name;
-    if (updates.bio !== undefined) dbUpdates.bio = updates.bio;
-    if (updates.language !== undefined) dbUpdates.language = updates.language;
-    if (updates.dateFormat !== undefined) dbUpdates.date_format = updates.dateFormat;
-    if (updates.weekStart !== undefined) dbUpdates.week_start = updates.weekStart;
-    if (updates.notifications !== undefined) dbUpdates.notifications = updates.notifications;
+    const defaultProfile = {
+      id: user.id,
+      email: user.email,
+      full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
+      bio: 'Welcome to Hybridus! Start managing your tasks efficiently.',
+      language: 'English',
+      date_format: '12h',
+      week_start: 'sunday',
+      notifications: true,
+    };
 
-    const { error } = await supabase
-      .from('profiles')
-      .update(dbUpdates)
-      .eq('id', user.id);
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .insert([defaultProfile])
+        .select()
+        .single();
 
-    if (error) {
+      if (error) {
+        console.error('Error creating profile:', error);
+      } else {
+        setProfile(data);
+      }
+    } catch (error) {
+      console.error('Error creating profile:', error);
+    }
+  };
+
+  const updateProfile = async (updates: Partial<Profile>) => {
+    if (!user) return { error: 'No user found' };
+
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .update(updates)
+        .eq('id', user.id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error updating profile:', error);
+        return { error: error.message };
+      }
+
+      setProfile(data);
+      return { data };
+    } catch (error) {
       console.error('Error updating profile:', error);
-      throw error;
-    } else {
-      setProfile({ ...profile, ...updates });
+      return { error: 'Failed to update profile' };
     }
   };
 
