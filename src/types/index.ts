@@ -13,17 +13,18 @@ export interface Task {
 
 export type CalendarViewType = 'daily' | 'weekly' | 'monthly';
 
+// Updated to match the database Profile interface
 export interface UserProfile {
-  name: string;
-  email: string;
-  avatar: string;
-  bio: string;
-  timezone: string;
-  theme: 'light' | 'dark';
-  notifications: boolean;
-  language: string;
-  dateFormat: '12h' | '24h';
-  weekStart: 'sunday' | 'monday';
+  id: string;
+  email: string | null;
+  full_name: string | null;
+  bio: string | null;
+  language: string | null;
+  date_format: string | null;
+  week_start: string | null;
+  notifications: boolean | null;
+  created_at: string | null;
+  updated_at: string | null;
 }
 
 export interface ChatMessage {

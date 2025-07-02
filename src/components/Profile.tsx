@@ -1,7 +1,6 @@
 
 import { useState } from 'react';
 import { User, Settings, Bell, Globe, Calendar, Clock, LogOut } from 'lucide-react';
-import { UserProfile } from '../types';
 import { useAuth } from '../hooks/useAuth';
 import { useProfile } from '../hooks/useProfile';
 
@@ -13,7 +12,7 @@ const Profile = ({ onSignOut }: ProfileProps) => {
   const [editingProfile, setEditingProfile] = useState(false);
   const { user } = useAuth();
   const { profile, loading, updateProfile } = useProfile();
-  const [formData, setFormData] = useState<UserProfile | null>(null);
+  const [formData, setFormData] = useState(profile);
 
   // Initialize form data when profile loads
   useState(() => {
@@ -59,7 +58,7 @@ const Profile = ({ onSignOut }: ProfileProps) => {
           <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl">
             <User className="w-12 h-12 text-white" />
           </div>
-          <h2 className="text-2xl font-light text-gray-900 mb-2">{profile.name}</h2>
+          <h2 className="text-2xl font-light text-gray-900 mb-2">{profile.full_name}</h2>
           <p className="text-gray-600 mb-4">{user?.email || profile.email}</p>
           <p className="text-sm text-gray-500 max-w-md mx-auto leading-relaxed">{profile.bio}</p>
         </div>
@@ -92,12 +91,12 @@ const Profile = ({ onSignOut }: ProfileProps) => {
                   {editingProfile ? (
                     <input
                       type="text"
-                      value={formData?.name || ''}
-                      onChange={(e) => setFormData(formData ? { ...formData, name: e.target.value } : null)}
+                      value={formData?.full_name || ''}
+                      onChange={(e) => setFormData(formData ? { ...formData, full_name: e.target.value } : null)}
                       className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300 glass-3d transition-all duration-300 focus:scale-[1.02]"
                     />
                   ) : (
-                    <div className="px-4 py-3 bg-gray-50 rounded-lg text-gray-900 glass-3d">{profile.name}</div>
+                    <div className="px-4 py-3 bg-gray-50 rounded-lg text-gray-900 glass-3d">{profile.full_name}</div>
                   )}
                 </div>
                 <div>
@@ -154,15 +153,15 @@ const Profile = ({ onSignOut }: ProfileProps) => {
                   </label>
                   {editingProfile ? (
                     <select
-                      value={formData?.dateFormat || ''}
-                      onChange={(e) => setFormData(formData ? { ...formData, dateFormat: e.target.value as '12h' | '24h' } : null)}
+                      value={formData?.date_format || ''}
+                      onChange={(e) => setFormData(formData ? { ...formData, date_format: e.target.value } : null)}
                       className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300 glass-3d transition-all duration-300 focus:scale-[1.02]"
                     >
                       <option value="12h">12 Hour</option>
                       <option value="24h">24 Hour</option>
                     </select>
                   ) : (
-                    <div className="px-4 py-3 bg-gray-50 rounded-lg text-gray-900 glass-3d">{profile.dateFormat === '12h' ? '12 Hour' : '24 Hour'}</div>
+                    <div className="px-4 py-3 bg-gray-50 rounded-lg text-gray-900 glass-3d">{profile.date_format === '12h' ? '12 Hour' : '24 Hour'}</div>
                   )}
                 </div>
                 <div>
@@ -172,15 +171,15 @@ const Profile = ({ onSignOut }: ProfileProps) => {
                   </label>
                   {editingProfile ? (
                     <select
-                      value={formData?.weekStart || ''}
-                      onChange={(e) => setFormData(formData ? { ...formData, weekStart: e.target.value as 'sunday' | 'monday' } : null)}
+                      value={formData?.week_start || ''}
+                      onChange={(e) => setFormData(formData ? { ...formData, week_start: e.target.value } : null)}
                       className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300 glass-3d transition-all duration-300 focus:scale-[1.02]"
                     >
                       <option value="sunday">Sunday</option>
                       <option value="monday">Monday</option>
                     </select>
                   ) : (
-                    <div className="px-4 py-3 bg-gray-50 rounded-lg text-gray-900 glass-3d capitalize">{profile.weekStart}</div>
+                    <div className="px-4 py-3 bg-gray-50 rounded-lg text-gray-900 glass-3d capitalize">{profile.week_start}</div>
                   )}
                 </div>
                 <div>

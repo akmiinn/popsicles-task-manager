@@ -170,7 +170,7 @@ const Index = () => {
         {/* Top Navigation */}
         <div className="glass-3d border-b border-gray-200 px-4 py-3">
           <div className="flex items-center justify-between">
-            <h1 className="text-lg font-medium text-gray-900">Popsicles</h1>
+            <h1 className="text-lg font-medium text-gray-900">Hybridus</h1>
             <div className="flex items-center gap-3">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
