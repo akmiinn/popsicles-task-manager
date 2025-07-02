@@ -1,7 +1,8 @@
+
 import React from 'react';
-import { Calendar, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar, Clock, ChevronLeft, ChevronRight, AlertTriangle } from 'lucide-react';
 import { Task, CalendarViewType, UserProfile } from '../types';
-import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addDays } from 'date-fns';
+import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addDays, parse, isAfter, isBefore } from 'date-fns';
 
 interface CalendarViewProps {
   view: CalendarViewType;
@@ -45,50 +46,111 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     return weekStart === 'monday' ? 1 : 0;
   };
 
+  const checkScheduleConflict = (newTask: { startTime: string; endTime: string; date: string }, existingTasks: Task[]) => {
+    const conflictingTasks = existingTasks.filter(task => {
+      if (task.date !== newTask.date) return false;
+      
+      const newStart = parse(newTask.startTime, 'HH:mm', new Date());
+      const newEnd = parse(newTask.endTime, 'HH:mm', new Date());
+      const existingStart = parse(task.startTime, 'HH:mm', new Date());
+      const existingEnd = parse(task.endTime, 'HH:mm', new Date());
+      
+      return (
+        (isAfter(newStart, existingStart) && isBefore(newStart, existingEnd)) ||
+        (isAfter(newEnd, existingStart) && isBefore(newEnd, existingEnd)) ||
+        (isBefore(newStart, existingStart) && isAfter(newEnd, existingEnd))
+      );
+    });
+    
+    return conflictingTasks;
+  };
+
+  const generateTimeSlots = () => {
+    const slots = [];
+    for (let hour = 0; hour < 24; hour++) {
+      slots.push(`${hour.toString().padStart(2, '0')}:00`);
+    }
+    return slots;
+  };
+
+  const getTaskPosition = (startTime: string, endTime: string) => {
+    const start = parseInt(startTime.split(':')[0]);
+    const end = parseInt(endTime.split(':')[0]);
+    const startMinutes = parseInt(startTime.split(':')[1]);
+    const endMinutes = parseInt(endTime.split(':')[1]);
+    
+    const topPercent = ((start * 60 + startMinutes) / (24 * 60)) * 100;
+    const heightPercent = (((end - start) * 60 + (endMinutes - startMinutes)) / (24 * 60)) * 100;
+    
+    return { top: `${topPercent}%`, height: `${heightPercent}%` };
+  };
+
+  const handleDateClick = (date: Date) => {
+    onDateChange(date);
+    if (view !== 'daily') {
+      onViewChange('daily');
+    }
+  };
+
   const renderDailyView = () => {
     const dailyTasks = getTasksForDate(selectedDate);
+    const timeSlots = generateTimeSlots();
 
     return (
-      <div className="glass-3d rounded-xl p-4">
+      <div className="glass-3d rounded-xl p-4 h-full">
         <h2 className="text-lg font-medium text-gray-900 mb-4">
           {formatDate(selectedDate)}
         </h2>
-        <ul className="space-y-2">
-          {dailyTasks.length > 0 ? (
-            dailyTasks.map((task) => (
-              <li
-                key={task.id}
-                className="flex items-center justify-between p-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-300"
-                style={{ backgroundColor: task.color }}
-              >
-                <div>
-                  <h3 className="text-sm font-medium text-gray-900">{task.title}</h3>
-                  <p className="text-xs text-gray-600">{task.description}</p>
-                  <div className="flex items-center text-xs text-gray-500 mt-1">
-                    <Clock className="w-3 h-3 mr-1" />
-                    {task.startTime} - {task.endTime}
-                  </div>
-                </div>
-                <div>
-                  <button
-                    onClick={() => onTaskEdit(task)}
-                    className="px-3 py-1 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-full text-xs transition-colors duration-300"
-                  >
-                    Edit
-                  </button>
-                  <input
-                    type="checkbox"
-                    checked={task.completed}
-                    onChange={() => onTaskToggle(task.id)}
-                    className="ml-3 h-5 w-5 rounded-full border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500 transition-all duration-300 cursor-pointer"
-                  />
-                </div>
-              </li>
-            ))
-          ) : (
-            <li className="text-gray-500">No tasks for today.</li>
-          )}
-        </ul>
+        <div className="relative h-96 overflow-y-auto border border-gray-200 rounded-lg bg-white/50">
+          {/* Time slots */}
+          {timeSlots.map((time, index) => (
+            <div key={time} className="relative border-b border-gray-100 h-16 flex items-start">
+              <div className="w-16 text-xs text-gray-500 p-2 border-r border-gray-100">
+                {time}
+              </div>
+              <div className="flex-1 relative">
+                {/* Tasks positioned absolutely within their time slots */}
+                {dailyTasks
+                  .filter(task => {
+                    const taskHour = parseInt(task.startTime.split(':')[0]);
+                    return taskHour === index;
+                  })
+                  .map((task) => {
+                    const position = getTaskPosition(task.startTime, task.endTime);
+                    return (
+                      <div
+                        key={task.id}
+                        className="absolute left-1 right-1 rounded-md p-2 cursor-pointer transition-all duration-300 hover:scale-105 border border-gray-200 shadow-sm"
+                        style={{
+                          backgroundColor: task.color,
+                          top: position.top,
+                          height: position.height,
+                          minHeight: '2rem'
+                        }}
+                        onClick={() => onTaskEdit(task)}
+                      >
+                        <div className="text-xs font-medium text-gray-900 truncate">
+                          {task.title}
+                        </div>
+                        <div className="text-xs text-gray-600 truncate">
+                          {task.startTime} - {task.endTime}
+                        </div>
+                        <input
+                          type="checkbox"
+                          checked={task.completed}
+                          onChange={(e) => {
+                            e.stopPropagation();
+                            onTaskToggle(task.id);
+                          }}
+                          className="absolute top-1 right-1 h-3 w-3 rounded border-gray-300 text-indigo-600"
+                        />
+                      </div>
+                    );
+                  })}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   };
@@ -114,13 +176,13 @@ const CalendarView: React.FC<CalendarViewProps> = ({
                       ? 'bg-green-50 border border-green-200'
                       : 'border border-gray-200'
                 }`}
-                onClick={() => onDateChange(day)}
+                onClick={() => handleDateClick(day)}
               >
                 <div className="text-sm font-medium text-gray-900 mb-2">
-                  {formatDate(day)}
+                  {format(day, 'EEE d')}
                 </div>
                 <ul className="space-y-1">
-                  {dayTasks.map((task) => (
+                  {dayTasks.slice(0, 3).map((task) => (
                     <li
                       key={task.id}
                       className="text-xs p-1 rounded truncate cursor-pointer transition-all duration-300 hover:opacity-80"
@@ -133,6 +195,11 @@ const CalendarView: React.FC<CalendarViewProps> = ({
                       {task.title}
                     </li>
                   ))}
+                  {dayTasks.length > 3 && (
+                    <div className="text-xs text-gray-500">
+                      +{dayTasks.length - 3} more
+                    </div>
+                  )}
                 </ul>
               </div>
             );
@@ -169,7 +236,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
             return (
               <div
                 key={day.toISOString()}
-                onClick={() => onDateChange(day)}
+                onClick={() => handleDateClick(day)}
                 className={`
                   min-h-20 p-2 rounded-lg cursor-pointer transition-all duration-300 hover:scale-105 border
                   ${isSelected 
@@ -183,7 +250,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
                 `}
               >
                 <div className={`text-xs font-medium mb-1 ${isSelected ? 'text-white' : 'text-gray-900'}`}>
-                  {formatDate(day)}
+                  {format(day, 'd')}
                 </div>
                 <div className="space-y-1">
                   {dayTasks.slice(0, 2).map((task) => (

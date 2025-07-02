@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, User, Eye, EyeOff, Sparkles } from 'lucide-react';
+import { Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -12,6 +12,7 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const navigate = useNavigate();
 
   const handleAuth = async (e: React.FormEvent) => {
@@ -52,6 +53,18 @@ const Auth = () => {
     setLoading(false);
   };
 
+  const handleToggleMode = () => {
+    setIsTransitioning(true);
+    setTimeout(() => {
+      setIsLogin(!isLogin);
+      setError('');
+      setFullName('');
+      setEmail('');
+      setPassword('');
+      setIsTransitioning(false);
+    }, 200);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 flex items-center justify-center p-4 relative overflow-hidden">
       {/* Subtle background elements */}
@@ -62,26 +75,21 @@ const Auth = () => {
       </div>
 
       <div className="glass-3d rounded-3xl shadow-2xl border border-gray-200/50 p-8 w-full max-w-md backdrop-blur-xl bg-white/90 relative z-10 transition-all duration-500 hover:shadow-3xl">
-        {/* Logo/Brand Section */}
+        {/* Brand Section */}
         <div className="text-center mb-8">
-          <div className="flex items-center justify-center mb-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-gray-700 to-gray-900 rounded-2xl flex items-center justify-center shadow-lg">
-              <Sparkles className="w-7 h-7 text-white" />
-            </div>
-          </div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent mb-2 tracking-tight">
             Hybridus
           </h1>
-          <p className="text-gray-600 text-sm transition-all duration-300">
+          <p className={`text-gray-600 text-sm transition-all duration-500 ${isTransitioning ? 'opacity-0 transform translate-y-2' : 'opacity-100 transform translate-y-0'}`}>
             {isLogin ? 'Welcome back to your productivity hub' : 'Join the future of task management'}
           </p>
         </div>
 
         <form onSubmit={handleAuth} className="space-y-6">
           {/* Animated form fields container */}
-          <div className="transition-all duration-500 ease-in-out">
+          <div className={`transition-all duration-500 ease-in-out ${isTransitioning ? 'opacity-0 transform scale-95' : 'opacity-100 transform scale-100'}`}>
             {!isLogin && (
-              <div className="animate-fade-in transition-all duration-300 transform">
+              <div className="animate-fade-in transition-all duration-500 transform overflow-hidden" style={{ height: isLogin ? '0px' : 'auto' }}>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   <User className="w-4 h-4 inline mr-2 text-gray-500" />
                   Full Name
@@ -91,7 +99,7 @@ const Auth = () => {
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   required={!isLogin}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-400/50 shadow-sm glass-3d text-gray-800 placeholder-gray-400 text-sm transition-all duration-300 focus:scale-[1.02] bg-white/80 backdrop-blur-sm"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-400/50 shadow-sm glass-3d text-gray-800 placeholder-gray-400 text-sm transition-all duration-300 focus:scale-[1.02] bg-white/80 backdrop-blur-sm mb-4"
                   placeholder="Enter your full name"
                 />
               </div>
@@ -145,7 +153,7 @@ const Auth = () => {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || isTransitioning}
             className="w-full px-6 py-3 bg-gradient-to-r from-gray-800 to-gray-900 text-white rounded-xl hover:from-gray-900 hover:to-black transition-all duration-300 shadow-lg hover:shadow-xl text-sm font-medium disabled:opacity-50 hover:scale-[1.02] glass-3d border border-gray-300 backdrop-blur-sm"
           >
             {loading ? (
@@ -159,14 +167,9 @@ const Auth = () => {
 
         <div className="mt-6 text-center">
           <button
-            onClick={() => {
-              setIsLogin(!isLogin);
-              setError('');
-              setFullName('');
-              setEmail('');
-              setPassword('');
-            }}
-            className="text-gray-600 hover:text-gray-800 text-sm transition-all duration-300 hover:underline transform hover:scale-105"
+            onClick={handleToggleMode}
+            disabled={isTransitioning}
+            className="text-gray-600 hover:text-gray-800 text-sm transition-all duration-500 hover:underline transform hover:scale-105 disabled:opacity-50"
           >
             {isLogin ? "Don't have an account? Create one" : 'Already have an account? Sign in'}
           </button>

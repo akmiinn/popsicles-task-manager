@@ -13,13 +13,42 @@ const AIAssistant = ({ onAddTask, tasks }: AIAssistantProps) => {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: '1',
-      content: 'Hello! I\'m your AI assistant. I can help you create, edit, and manage your tasks using natural language. Try saying something like "add a meeting tomorrow at 2pm" or "schedule workout for Monday morning".',
+      content: 'Hello! I\'m your Assistant. I can help you create, edit, and manage your tasks using natural language. I can also help you avoid schedule conflicts by recommending better arrangements. Try saying something like "add a meeting tomorrow at 2pm" or "schedule workout for Monday morning".',
       isUser: false,
       timestamp: new Date(),
     },
   ]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  const checkScheduleConflict = (newTask: { startTime: string; endTime: string; date: string }) => {
+    return tasks.filter(task => {
+      if (task.date !== newTask.date) return false;
+      
+      const newStart = new Date(`2000-01-01T${newTask.startTime}:00`);
+      const newEnd = new Date(`2000-01-01T${newTask.endTime}:00`);
+      const existingStart = new Date(`2000-01-01T${task.startTime}:00`);
+      const existingEnd = new Date(`2000-01-01T${task.endTime}:00`);
+      
+      return (
+        (newStart >= existingStart && newStart < existingEnd) ||
+        (newEnd > existingStart && newEnd <= existingEnd) ||
+        (newStart <= existingStart && newEnd >= existingEnd)
+      );
+    });
+  };
+
+  const generateConflictRecommendation = (conflictingTasks: Task[], newTask: any) => {
+    const conflicts = conflictingTasks.map(task => `${task.title} (${task.startTime}-${task.endTime})`).join(', ');
+    return `⚠️ Schedule conflict detected! The time slot ${newTask.startTime}-${newTask.endTime} on ${newTask.date} conflicts with: ${conflicts}. 
+
+I recommend:
+1. Moving the new task to an available time slot
+2. Shortening the duration of existing tasks
+3. Rescheduling to a different day
+
+Would you like me to suggest specific alternative times?`;
+  };
 
   const parseTaskFromResponse = (response: string) => {
     try {
@@ -42,10 +71,6 @@ const AIAssistant = ({ onAddTask, tasks }: AIAssistantProps) => {
       console.error('Error parsing task response:', error);
       return null;
     }
-  };
-
-  const generateTaskId = () => {
-    return Date.now().toString() + Math.random().toString(36).substr(2, 9);
   };
 
   const handleSendMessage = async () => {
@@ -97,8 +122,15 @@ const AIAssistant = ({ onAddTask, tasks }: AIAssistantProps) => {
             color: 'task-pastel-blue'
           };
 
-          await onAddTask(newTask);
-          botResponse = `Great! I've created a new task: "${newTask.title}" scheduled for ${newTask.date} from ${newTask.startTime} to ${newTask.endTime}. Priority: ${newTask.priority}.`;
+          // Check for schedule conflicts
+          const conflictingTasks = checkScheduleConflict(newTask);
+          
+          if (conflictingTasks.length > 0) {
+            botResponse = generateConflictRecommendation(conflictingTasks, newTask);
+          } else {
+            await onAddTask(newTask);
+            botResponse = `Perfect! I've created a new task: "${newTask.title}" scheduled for ${newTask.date} from ${newTask.startTime} to ${newTask.endTime}. Priority: ${newTask.priority}. No schedule conflicts detected! ✅`;
+          }
         } catch (error) {
           console.error('Error creating task:', error);
           botResponse = 'I understood you want to create a task, but there was an error saving it. Please try again.';
@@ -150,7 +182,7 @@ const AIAssistant = ({ onAddTask, tasks }: AIAssistantProps) => {
               <Bot className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">AI Assistant</h2>
+              <h2 className="text-xl font-semibold text-gray-900">Assistant</h2>
               <p className="text-sm text-gray-600">Your intelligent task management companion</p>
             </div>
           </div>
