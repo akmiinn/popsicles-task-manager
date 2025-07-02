@@ -8,9 +8,10 @@ import CalendarView from '../components/CalendarView';
 import TaskList from '../components/TaskList';
 import Profile from '../components/Profile';
 import AIAssistant from '../components/AIAssistant';
-import { CalendarViewType, UserProfile } from '../types';
+import { CalendarViewType } from '../types';
 import { useAuth } from '../hooks/useAuth';
 import { useTasks } from '../hooks/useTasks';
+import { useProfile } from '../hooks/useProfile';
 
 const Index = () => {
   const [currentView, setCurrentView] = useState<CalendarViewType>('daily');
@@ -19,22 +20,11 @@ const Index = () => {
   const [showTaskOverlay, setShowTaskOverlay] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [editingTask, setEditingTask] = useState(null);
-  const [userProfile, setUserProfile] = useState<UserProfile>({
-    name: 'John Doe',
-    email: 'john.doe@example.com',
-    avatar: '',
-    bio: 'Product manager passionate about productivity and organization.',
-    timezone: 'America/New_York',
-    theme: 'light',
-    notifications: true,
-    language: 'English',
-    dateFormat: '12h',
-    weekStart: 'monday'
-  });
 
   const navigate = useNavigate();
   const { user, loading: authLoading, signOut } = useAuth();
   const { tasks, loading: tasksLoading, addTask, updateTask, deleteTask, toggleTaskCompletion } = useTasks();
+  const { profile } = useProfile();
 
   // Redirect to auth if not logged in
   if (!authLoading && !user) {
@@ -57,11 +47,6 @@ const Index = () => {
   const handleTaskEdit = (task: any) => {
     setEditingTask(task);
     setShowTaskOverlay(true);
-  };
-
-  const handleProfileUpdate = (updatedProfile: UserProfile) => {
-    setUserProfile(updatedProfile);
-    localStorage.setItem('userProfile', JSON.stringify(updatedProfile));
   };
 
   const handleSignOut = async () => {
@@ -151,7 +136,7 @@ const Index = () => {
               onDateChange={setSelectedDate}
               onTaskToggle={toggleTaskCompletion}
               onViewChange={setCurrentView}
-              userProfile={userProfile}
+              userProfile={profile}
             />
           </div>
         );
@@ -165,7 +150,7 @@ const Index = () => {
           />
         );
       case 'profile':
-        return <Profile profile={userProfile} onProfileUpdate={handleProfileUpdate} onSignOut={handleSignOut} />;
+        return <Profile onSignOut={handleSignOut} />;
       case 'ai':
         return <AIAssistant onAddTask={addTask} tasks={tasks} />;
       default:

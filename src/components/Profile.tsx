@@ -3,27 +3,53 @@ import { useState } from 'react';
 import { User, Settings, Bell, Globe, Calendar, Clock, LogOut } from 'lucide-react';
 import { UserProfile } from '../types';
 import { useAuth } from '../hooks/useAuth';
+import { useProfile } from '../hooks/useProfile';
 
 interface ProfileProps {
-  profile: UserProfile;
-  onProfileUpdate: (profile: UserProfile) => void;
   onSignOut: () => void;
 }
 
-const Profile = ({ profile, onProfileUpdate, onSignOut }: ProfileProps) => {
+const Profile = ({ onSignOut }: ProfileProps) => {
   const [editingProfile, setEditingProfile] = useState(false);
-  const [formData, setFormData] = useState(profile);
   const { user } = useAuth();
+  const { profile, loading, updateProfile } = useProfile();
+  const [formData, setFormData] = useState<UserProfile | null>(null);
 
-  const handleSave = () => {
-    onProfileUpdate(formData);
-    setEditingProfile(false);
+  // Initialize form data when profile loads
+  useState(() => {
+    if (profile && !formData) {
+      setFormData(profile);
+    }
+  });
+
+  const handleSave = async () => {
+    if (!formData) return;
+    
+    try {
+      await updateProfile(formData);
+      setEditingProfile(false);
+    } catch (error) {
+      console.error('Error saving profile:', error);
+    }
   };
 
   const handleCancel = () => {
     setFormData(profile);
     setEditingProfile(false);
   };
+
+  if (loading || !profile) {
+    return (
+      <div className="flex-1 p-6 animate-fade-in">
+        <div className="max-w-2xl mx-auto">
+          <div className="glass-3d rounded-2xl p-8 text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading profile...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 p-6 animate-fade-in">
@@ -66,8 +92,8 @@ const Profile = ({ profile, onProfileUpdate, onSignOut }: ProfileProps) => {
                   {editingProfile ? (
                     <input
                       type="text"
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      value={formData?.name || ''}
+                      onChange={(e) => setFormData(formData ? { ...formData, name: e.target.value } : null)}
                       className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300 glass-3d transition-all duration-300 focus:scale-[1.02]"
                     />
                   ) : (
@@ -83,8 +109,8 @@ const Profile = ({ profile, onProfileUpdate, onSignOut }: ProfileProps) => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Bio</label>
                 {editingProfile ? (
                   <textarea
-                    value={formData.bio}
-                    onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                    value={formData?.bio || ''}
+                    onChange={(e) => setFormData(formData ? { ...formData, bio: e.target.value } : null)}
                     rows={3}
                     className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300 resize-none glass-3d transition-all duration-300 focus:scale-[1.02]"
                   />
@@ -108,8 +134,8 @@ const Profile = ({ profile, onProfileUpdate, onSignOut }: ProfileProps) => {
                   </label>
                   {editingProfile ? (
                     <select
-                      value={formData.language}
-                      onChange={(e) => setFormData({ ...formData, language: e.target.value })}
+                      value={formData?.language || ''}
+                      onChange={(e) => setFormData(formData ? { ...formData, language: e.target.value } : null)}
                       className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300 glass-3d transition-all duration-300 focus:scale-[1.02]"
                     >
                       <option value="English">English</option>
@@ -128,8 +154,8 @@ const Profile = ({ profile, onProfileUpdate, onSignOut }: ProfileProps) => {
                   </label>
                   {editingProfile ? (
                     <select
-                      value={formData.dateFormat}
-                      onChange={(e) => setFormData({ ...formData, dateFormat: e.target.value as '12h' | '24h' })}
+                      value={formData?.dateFormat || ''}
+                      onChange={(e) => setFormData(formData ? { ...formData, dateFormat: e.target.value as '12h' | '24h' } : null)}
                       className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300 glass-3d transition-all duration-300 focus:scale-[1.02]"
                     >
                       <option value="12h">12 Hour</option>
@@ -146,8 +172,8 @@ const Profile = ({ profile, onProfileUpdate, onSignOut }: ProfileProps) => {
                   </label>
                   {editingProfile ? (
                     <select
-                      value={formData.weekStart}
-                      onChange={(e) => setFormData({ ...formData, weekStart: e.target.value as 'sunday' | 'monday' })}
+                      value={formData?.weekStart || ''}
+                      onChange={(e) => setFormData(formData ? { ...formData, weekStart: e.target.value as 'sunday' | 'monday' } : null)}
                       className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300 glass-3d transition-all duration-300 focus:scale-[1.02]"
                     >
                       <option value="sunday">Sunday</option>
@@ -166,8 +192,8 @@ const Profile = ({ profile, onProfileUpdate, onSignOut }: ProfileProps) => {
                     <div className="flex items-center">
                       <input
                         type="checkbox"
-                        checked={formData.notifications}
-                        onChange={(e) => setFormData({ ...formData, notifications: e.target.checked })}
+                        checked={formData?.notifications || false}
+                        onChange={(e) => setFormData(formData ? { ...formData, notifications: e.target.checked } : null)}
                         className="w-4 h-4 text-blue-600 rounded focus:ring-blue-300 transition-all duration-300"
                       />
                       <span className="ml-3 text-sm text-gray-700">Enable notifications</span>
